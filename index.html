@@ -254,6 +254,8 @@ input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--green); ma
 
 .seg { display: inline-flex; flex-wrap: wrap; gap: 2px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
 .seg label { position: relative; }
+.seg.seg-col { display: grid; }
+.seg.seg-col span { white-space: normal; }
 .seg input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; width: 100%; height: 100%; }
 .seg span { display: block; padding: 6px 13px; border-radius: 7px; font-size: 13.5px; color: var(--ink-2); white-space: nowrap; }
 .seg input:checked + span { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(59, 59, 59, .12); }
@@ -349,6 +351,9 @@ td.actions .icon-btn { width: 32px; height: 32px; }
 .rep-label { font-size: 13.5px; font-weight: 600; color: var(--green-strong); }
 .rep-label small { font-weight: 400; color: var(--muted); margin-inline-start: 6px; }
 .rep-range { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+.rep-range.end-only { grid-template-columns: minmax(0, 1fr); max-width: 520px; }
+.rep-start { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-size: 13.5px; color: var(--ink-2); }
+.rep-start strong { color: var(--green-strong); }
 .rep-point { display: grid; grid-template-columns: auto minmax(0, 1fr) 96px; align-items: center; gap: 8px; }
 .rep-point > span { font-size: 13.5px; color: var(--ink-2); min-width: 22px; }
 .rep-point select { height: 42px; }
@@ -461,6 +466,24 @@ a.srow.selected, .srow.selected { background: var(--green-wash); }
   #stList.selectable .srow { grid-template-columns: 28px 28px minmax(0, 1fr) auto; grid-template-areas: "check idx name status" "check idx memo att"; }
   .srow .c-check { grid-area: check; }
 }
+
+/* الهيكلية الإدارية: مستويات من فوق لتحت، بينها خط ذهبي */
+.org { display: grid; gap: 26px; }
+.org-tier { position: relative; text-align: center; }
+.org-tier + .org-tier::before { content: ''; position: absolute; top: -26px; left: 50%; width: 2px; height: 26px; background: var(--gold); }
+.org-tier-name { display: inline-block; font-size: 13px; font-weight: 600; color: var(--green-strong); background: var(--green-wash); border-radius: 999px; padding: 3px 14px; margin-bottom: 10px; }
+.org-groups { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.org-group { flex: 0 1 220px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--green); border-radius: var(--radius); padding: 10px 12px; text-align: start; }
+.org-tier:first-child .org-group { border-top-color: var(--gold); }
+.org-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-family: var(--font-head); font-weight: 700; font-size: 14.5px; margin-bottom: 6px; }
+.org-count { font-family: var(--font-body, inherit); font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--surface-2); border-radius: 999px; padding: 1px 8px; }
+.org-people { display: grid; gap: 2px; }
+.org-person { display: block; padding: 5px 6px; border-radius: 8px; color: var(--ink); text-decoration: none; font-size: 14px; overflow-wrap: anywhere; }
+.org-person:hover { background: var(--surface-2); }
+.org-person small { display: block; color: var(--muted); font-size: 12px; }
+.org-tier:last-child .org-groups .org-group { flex-basis: 100%; max-width: 760px; }
+.org-tier:last-child .org-people { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+@media (max-width: 560px) { .org-group { flex-basis: 100%; } }
 
 .info { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 12px 0 0; font-size: 14px; }
 .info dt { color: var(--muted); }
@@ -607,7 +630,7 @@ body:has(.savebar) .sync-pill { bottom: 84px; }
 </style>
 </head>
 <body>
-<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "ae25e44";</script>
+<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "2455978";</script>
 <div id="app"><div class="login"><div class="login-card" aria-busy="true" aria-label="جارٍ التحميل"><span class="sk" style="width:132px;height:132px;border-radius:28px;justify-self:center"></span><span class="sk" style="width:70%;height:22px;border-radius:6px;justify-self:center"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:40px;border-radius:8px"></span></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
@@ -2574,13 +2597,19 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   function repCard(e, i, ro) {
     const b = e.before || {};
     const beforeText = [b.lastAchievement && 'وصل إلى ' + b.lastAchievement, b.juzCount !== '' && b.juzCount != null && `${fmtN(b.juzCount)} ${juzWord(b.juzCount)}`].filter(Boolean).join('، ');
-    return html`<fieldset class="rep-card" data-sid="${e.studentId}" ${ro ? raw('disabled') : ''}>
+    // البداية معروفة (الآية اللي بعد آخر ما وصل إليه): بتنعرض نص، والمحفّظ بيختار النهاية بس
+    const st = e.start;
+    const auto = !!st && (!e.fromSurah || (same(e.fromSurah, st.surah) && same(e.fromAyah, st.ayah)));
+    const from = auto ? { s: st.surah, a: st.ayah } : { s: e.fromSurah, a: e.fromAyah };
+    return html`<fieldset class="rep-card" data-sid="${e.studentId}" ${auto ? raw('data-auto="1"') : ''} ${ro ? raw('disabled') : ''}>
       <legend><span class="rep-num">${i + 1}</span><span class="rep-name">${e.studentName}</span>${beforeText ? html`<span class="rep-before">${beforeText}</span>` : ''}</legend>
       <div class="rep-sec">
         <span class="rep-label">الحفظ هذا الشهر</span>
-        <div class="rep-range">
-          <div class="rep-point"><span>من</span>${surahPick('fromSurah', e.fromSurah, 'من سورة')}
-            <select name="fromAyah" class="ayah-sel" aria-label="من آية">${ayahOptions(e.fromSurah, e.fromAyah)}</select></div>
+        ${auto ? html`<p class="rep-start">يبدأ من <strong>سورة ${surahName(st.surah)} آية ${st.ayah}</strong>
+          ${ro ? '' : html`<button type="button" class="link-btn" data-act="rep-start-edit">تغيير البداية</button>`}</p>` : ''}
+        <div class="rep-range ${auto ? 'end-only' : ''}">
+          <div class="rep-point rep-from" ${auto ? raw('hidden') : ''}><span>من</span>${surahPick('fromSurah', from.s, 'من سورة')}
+            <select name="fromAyah" class="ayah-sel" aria-label="من آية">${ayahOptions(from.s, from.a)}</select></div>
           <div class="rep-point"><span>إلى</span>${surahPick('toSurah', e.toSurah, 'إلى سورة')}
             <select name="toAyah" class="ayah-sel" aria-label="إلى آية">${ayahOptions(e.toSurah, e.toAyah)}</select></div>
         </div>
@@ -2605,7 +2634,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const v = n => Number($(`[name=${n}]`, card).value);
     const el = $('.rep-calc', card);
     const [fs_, fa, ts, ta] = [v('fromSurah'), v('fromAyah'), v('toSurah'), v('toAyah')];
-    if (fs_ && fa && ts && ta) {
+    if (card.dataset.auto && !ts) {
+      el.textContent = 'اختر السورة والآية التي وصل إليها، أو اتركها فارغة إن لم يحفظ جديداً';
+      el.className = 'rep-calc muted';
+    } else if (fs_ && fa && ts && ta) {
       const r = rangeInfo(fs_, fa, ts, ta);
       const juz = Math.round(r.juz * 10) / 10;
       el.textContent = `${rangeText({ fromSurah: fs_, fromAyah: fa, toSurah: ts, toAyah: ta })}: ${ayat(r.ayat)}${juz >= 0.1 ? `، تقريباً ${fmtN(juz)} ${juzWord(juz)}` : ''}`;
@@ -2646,6 +2678,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const entries = $$('.rep-card', form).map(c => {
       const o = { studentId: Number(c.dataset.sid) || c.dataset.sid, sardMonth: $$('[name=sard]:checked', c).map(x => Number(x.value)) };
       $$('select, input:not([type=checkbox])', c).forEach(el => { o[el.name] = el.value; });
+      // ما حفظ جديداً: البداية التلقائية ما بتنبعت لحالها
+      if (c.dataset.auto && !o.toSurah) { o.fromSurah = ''; o.fromAyah = ''; }
       return o;
     });
     const month = form.month.value, halaqaId = form.halaqaId.value;
@@ -3101,6 +3135,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   function renderImportPreview(textarea) {
     const form = textarea.form, el = $('#importPreview', form), btn = $('button[type=submit]', form);
     if (textarea.dataset.import === 'teachers') return renderTeachersPreview(textarea, el, btn);
+    if (textarea.dataset.import === 'finance') return renderFinancePreview(textarea, el, btn);
     let res;
     try {
       res = parseRoster(textarea.value);
@@ -3358,14 +3393,18 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const month = p.month || S.today.slice(0, 7);
     const head = html`
       <div class="page-head"><div><h1>المالية</h1><p class="sub">التبرعات والكفالات والمصاريف</p></div>
-        <div class="ph-actions"><button class="btn" data-act="tx-new">${icon('plus')}إضافة حركة</button></div></div>
+        <div class="ph-actions"><button class="btn secondary" data-act="finance-export">${icon('download')}تصدير المالية</button>
+          <button class="btn secondary" data-act="finance-import" data-tab="${tab}">استيراد من إكسل</button>
+          <button class="btn" data-act="tx-new">${icon('plus')}إضافة حركة</button></div></div>
       <nav class="tabs">${FIN_TABS.map(t => html`<a href="#" class="${t[0] === tab ? 'active' : ''}" data-go="finance" data-params="${params({ tab: t[0] })}">${t[1]}</a>`)}</nav>`;
 
     if (tab === 'summary') {
       const f = await load('finance.summary', { month });
       if (stale(seq)) return;
+      S.finSummary = f;
       main.innerHTML = html`${head}
-        <div class="toolbar"><label class="field"><span>الشهر</span><input type="month" value="${f.month}" data-change="fin-month" data-tab="summary"></label></div>
+        <div class="toolbar"><label class="field"><span>الشهر</span><input type="month" value="${f.month}" data-change="fin-month" data-tab="summary"></label>
+          <button class="btn secondary sm" data-act="export-finance" data-tab="summary">${icon('download')}تصدير إلى إكسل</button></div>
         <div class="stats">
           ${stat('الرصيد الحالي', money(f.balance), 'إجمالي الإيرادات بعد خصم المصروفات')}
           ${stat('إيرادات الشهر', money(f.monthIn), fMonth(f.month))}
@@ -3478,6 +3517,270 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
             ${s.phone ? html`<a class="icon-btn" href="${waLink(s.phone, 'السلام عليكم ورحمة الله')}" target="_blank" rel="noopener" aria-label="واتساب">${icon('chat')}</a>` : ''}
             <button class="icon-btn" data-act="sponsor-edit" data-id="${s.id}" aria-label="تعديل">${icon('edit')}</button>
           </td></tr>`)}</tbody></table></div>${paged('sponsors', sp).bar}` : emptyBox('لا يوجد كفلاء أو متبرعون بعد.')}`;
+  }
+
+  /* ═════════ استيراد المالية من إكسل ═════════ */
+  // نفس طريقة استيراد الطلاب: بينسخ الجدول من إكسل وبيلصقه، وبيشوف معاينة قبل الاستيراد.
+  // الكشوف المصدَّرة من النظام بتنقرأ كما هي (صف العنوان فوق الجدول بيتجاوز).
+  const FIN_IMPORT = {
+    tx: { label: 'الحركات المالية', need: 'المبلغ', re: /^المبلغ$/,
+      hint: 'الأعمدة: التاريخ، النوع، المبلغ، البند، الجهة (المتبرع أو الكافل أو المستفيد من المكافأة)، طريقة الدفع، رقم الإيصال، ملاحظات. التاريخ والمبلغ ضروريان، والباقي اختياري.' },
+    kafalat: { label: 'الكفالات', need: 'الكافل', re: /^(الكافل|اسم الكافل)$/,
+      hint: 'الأعمدة: الكافل، نوع الكفالة (طالب، محفظ، حلقة، عامة)، المستفيد، المبلغ الشهري، من، إلى، الحالة، ملاحظات. الكافل غير المسجّل يُضاف تلقائياً.' },
+    sponsors: { label: 'الكفلاء والمتبرعون', need: 'الاسم', re: /^(الاسم|اسم الكافل|اسم المتبرع|الكافل|المتبرع)$/,
+      hint: 'الأعمدة: الاسم، الهاتف، ملاحظات. المسجّل سابقاً بالاسم نفسه تُحدَّث بياناته.' },
+  };
+
+  function parseFinance(kind, text, defType) {
+    const conf = FIN_IMPORT[kind];
+    const { lines, hIdx, H } = readPasted(text, conf.re, conf.need);
+    const find = re => H.findIndex(h => re.test(h));
+    const blank = v => (/^[-—–]$/.test(String(v || '').trim()) ? '' : String(v || '').replace(/\s+/g, ' ').trim());
+    const get = (r, i) => (i < 0 ? '' : blank(r[i]));
+    const amount = v => toLatin(v).replace(/[^\d.]/g, '');
+    const rows = [], bad = [];
+    // كشف «الحركات المالية: مصروف» المصدَّر من النظام: النوع من عنوانه
+    let titleType = '';
+    lines.slice(0, hIdx).forEach(r => { const t = r.join(' '); const m = S.lists.txTypes.find(x => t.includes(x)); if (m) titleType = m; if (/مكافآت/.test(t)) titleType = 'مكافأة'; });
+    const C = kind === 'tx' ? { date: find(/التاريخ/), type: find(/^(النوع|نوع الحركة)$/), amount: find(conf.re), category: find(/البند|التصنيف|نوع المكافأة/),
+      party: find(/^(الجهة|المتبرع|الكافل|المستفيد|الاسم)$/), method: find(/طريقة الدفع|^الدفع$/), receipt: find(/الإيصال|السند/), notes: find(/ملاحظات|ملحوظات|البيان/) }
+      : kind === 'kafalat' ? { sponsor: find(conf.re), kind: find(/نوع الكفالة/), ben: find(/المستفيد/), monthly: find(/المبلغ الشهري|^شهرياً$|^المبلغ$/),
+        start: find(/^من$|تاريخ البدء|البداية/), end: find(/^إلى$|تاريخ الانتهاء|النهاية/), status: find(/^(الحالة|الوضع)$/), notes: find(/ملاحظات|ملحوظات/) }
+      : { name: find(conf.re), phone: find(/الهاتف|الجوال|رقم/), notes: find(/ملاحظات|ملحوظات/) };
+    lines.slice(hIdx + 1).forEach((r, n) => {
+      const line = hIdx + n + 2;
+      if (!r.some(c => blank(c))) return;
+      // صف المجموع تحت الجدول (بالكشوف المصدَّرة) مش بيانات
+      if (r.some(c => /^(المجموع|العدد الإجمالي)$/.test(blank(c)))) return;
+      const fail = msg => { bad.push({ line, msg }); };
+      if (kind === 'tx') {
+        const rawDate = get(r, C.date), date = parseDmy(rawDate);
+        const rawType = get(r, C.type);
+        const type = S.lists.txTypes.find(x => normAr(x) === normAr(rawType)) || (rawType ? '' : defType || titleType);
+        const amt = amount(get(r, C.amount));
+        if (!date) return fail(rawDate ? `التاريخ «${rawDate}» غير واضح` : 'التاريخ فارغ');
+        if (!type) return fail(rawType ? `النوع «${rawType}» غير معروف` : 'حدّد نوع الحركة');
+        if (!(Number(amt) > 0)) return fail('المبلغ فارغ أو غير صحيح');
+        const party = get(r, C.party);
+        rows.push({ line, date, type, amount: amt, category: get(r, C.category), party: party.replace(/\s*\((طالب|محفّظ|محفظ)\)$/, ''),
+          beneficiaryKind: /\((محفّظ|محفظ)\)$/.test(party) ? 'محفظ' : /\(طالب\)$/.test(party) ? 'طالب' : '',
+          method: get(r, C.method), receipt: get(r, C.receipt), notes: get(r, C.notes) });
+      } else if (kind === 'kafalat') {
+        const sponsorName = get(r, C.sponsor), monthly = amount(get(r, C.monthly));
+        const rawStart = get(r, C.start), startDate = parseDmy(rawStart), rawEnd = get(r, C.end), endDate = parseDmy(rawEnd);
+        if (!sponsorName) return fail('اسم الكافل فارغ');
+        if (!(Number(monthly) > 0)) return fail('المبلغ الشهري فارغ أو غير صحيح');
+        if (!startDate) return fail(rawStart ? `تاريخ البدء «${rawStart}» غير واضح` : 'تاريخ البدء فارغ');
+        if (rawEnd && !endDate) return fail(`تاريخ الانتهاء «${rawEnd}» غير واضح`);
+        rows.push({ line, sponsorName, kind: get(r, C.kind).replace(/^محفّظ$/, 'محفظ').replace(/^كفالة عامة$/, 'عامة'), beneficiaryName: get(r, C.ben),
+          monthly, startDate, endDate, active: !/متوقف/.test(get(r, C.status)), notes: get(r, C.notes) });
+      } else {
+        const name = get(r, C.name);
+        if (!name) return fail('الاسم فارغ');
+        rows.push({ line, name, phone: toLatin(get(r, C.phone)).replace(/[^\d+]/g, ''), notes: get(r, C.notes) });
+      }
+    });
+    if (!rows.length && !bad.length) throw new Error('لم يُعثر على صفوف تحت صف العناوين');
+    return { rows, bad, titleType };
+  }
+
+  function financeImportForm(tab) {
+    const kind = tab === 'kafalat' ? 'kafalat' : tab === 'sponsors' ? 'sponsors' : 'tx';
+    const form = openModal({
+      title: 'استيراد إلى المالية من إكسل',
+      cls: 'wide',
+      submitLabel: 'استيراد',
+      body: html`
+        <label class="field"><span>من ملف إكسل: يمكن اختيار أكثر من ملف، وتُقرأ كل ورقة فيه وحدها (الحركات والمكافآت والكفالات والكفلاء)</span>
+          <input type="file" name="files" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple data-change="fin-files"></label>
+        <div id="finFiles"></div>
+        <h3 class="form-sec">أو الصق جدولاً منسوخاً من إكسل</h3>
+        <div class="field"><span>ماذا تستورد؟</span><div class="seg" role="radiogroup">${Object.entries(FIN_IMPORT).map(([k, v]) => html`
+          <label><input type="radio" name="kind" value="${k}" ${k === kind ? raw('checked') : ''}><span>${v.label}</span></label>`)}</div></div>
+        <label class="field" id="finType"><span>نوع الحركات إذا لم يكن في الكشف عمود «النوع»</span><select name="type">
+          <option value="">حسب عمود النوع في الكشف</option>${options(S.lists.txTypes, tab === 'rewards' ? 'مكافأة' : '')}</select></label>
+        <p class="hint" id="finHint"></p>
+        <p class="hint">افتح الكشف في إكسل أو جوجل شيت، وحدّد الجدول مع صف العناوين، ثم انسخه والصقه هنا. الصفوف المسجّلة سابقاً بالبيانات نفسها لا تتكرر.</p>
+        <label class="field"><span>الكشف</span><textarea name="paste" rows="6" placeholder="الصق الجدول هنا…" data-import="finance"></textarea></label>
+        <div id="importPreview"></div>`,
+      onSubmit: async (data, fm) => {
+        const batches = (fm._finBatches || []).filter(b => b.rows.length);
+        if (batches.length) return importFinBatches(batches);
+        const parsed = parseFinance(data.kind, data.paste, data.type);
+        if (!parsed.rows.length) throw new Error('لا توجد صفوف صالحة للاستيراد. راجع الملاحظات تحت الكشف.');
+        const r = await importNow('finance.import', { kind: data.kind, type: data.type, rows: parsed.rows }, `استيراد ${FIN_IMPORT[data.kind].label} (${fmtN(parsed.rows.length)} صف)`);
+        if (!r) return;
+        setTimeout(() => openModal({
+          title: 'تم الاستيراد',
+          cls: 'narrow',
+          body: html`<ul class="warn-list ok">
+            <li>أُضيف: ${fmtN(r.created)}</li>
+            ${r.updated ? html`<li>حُدّثت بياناته: ${fmtN(r.updated)}</li>` : ''}
+            ${r.skipped ? html`<li>مسجّل سابقاً فلم يتكرر: ${fmtN(r.skipped)}</li>` : ''}
+            ${r.sponsorsCreated ? html`<li>كفلاء ومتبرعون جدد أُضيفوا تلقائياً: ${fmtN(r.sponsorsCreated)}</li>` : ''}
+            ${parsed.bad.length ? html`<li>صفوف لم تُستورد لنقص بياناتها: ${fmtN(parsed.bad.length)}</li>` : ''}</ul>
+            ${r.errorCount ? html`<p style="margin-top:12px"><strong>صفوف لم تُستورد (${fmtN(r.errorCount)}):</strong></p>
+              <ul class="warn-list">${r.errors.map(x => html`<li>الصف ${fmtN(x.line)}: ${x.error}</li>`)}</ul>` : ''}`,
+        }), 50);
+      },
+    });
+    form.dataset.finImport = '1';
+    syncFinImport(form);
+  }
+
+  // نوع الورقة من صف عناوينها
+  function finKindOf(rows) {
+    const t = c => String(c == null ? '' : c).trim();
+    const row = (...res) => rows.some(r => res.every(re => r.some(c => re.test(t(c)))));
+    if (row(FIN_IMPORT.kafalat.re, /^من$|تاريخ البدء|البداية/)) return 'kafalat';
+    if (row(FIN_IMPORT.tx.re, /التاريخ/)) return 'tx';
+    if (row(FIN_IMPORT.sponsors.re, /الهاتف|الجوال|إجمالي العطاء/)) return 'sponsors';
+    return '';
+  }
+
+  async function loadFinFiles(input) {
+    const form = input.form, box = $('#finFiles', form), btn = $('button[type=submit]', form);
+    form._finBatches = null;
+    btn.textContent = 'استيراد';
+    if (!input.files.length) { box.innerHTML = ''; return; }
+    box.innerHTML = html`<p class="hint">جارٍ قراءة الملف…</p>`;
+    const batches = [], other = [];
+    try {
+      for (const file of input.files) {
+        (await readXlsx(file)).forEach(sh => {
+          const kind = finKindOf(sh.rows);
+          if (!kind) { if (sh.rows.some(r => r.some(Boolean))) other.push(sh.name); return; }
+          const defType = kind === 'tx' ? S.lists.txTypes.find(x => sh.name.includes(x)) || (/مكافآت/.test(sh.name) ? 'مكافأة' : '') : '';
+          try {
+            batches.push(Object.assign({ file: file.name, sheet: sh.name, kind }, parseFinance(kind, sh.rows.map(r => r.join('\t')).join('\n'), defType)));
+          } catch (e) { other.push(`${sh.name} (${e.message})`); }
+        });
+      }
+    } catch (e) {
+      box.innerHTML = html`<p class="form-error">${e.message}</p>`;
+      return;
+    }
+    form._finBatches = batches;
+    const total = batches.reduce((n, b) => n + b.rows.length, 0);
+    box.innerHTML = batches.length ? html`<ul class="warn-list ok">${batches.map(b => html`<li>${input.files.length > 1 ? b.file + '، ' : ''}ورقة «${b.sheet}»: ${fmtN(b.rows.length)} صف من ${FIN_IMPORT[b.kind].label}
+        ${b.bad.length ? html`<small class="danger-text">، و${fmtN(b.bad.length)} صف ناقص لن يُستورد (أولها الصف ${fmtN(b.bad[0].line)}: ${b.bad[0].msg})</small>` : ''}</li>`)}</ul>
+      ${other.length ? html`<p class="hint">أوراق لم يُتعرَّف عليها وستُتجاوز: ${other.join('، ')}</p>` : ''}`
+      : html`<p class="form-error">لم يُعثر في الملف على أوراق مالية. يجب أن تحتوي الورقة على صف عناوين فيه مثلاً «التاريخ» و«المبلغ».</p>`;
+    btn.textContent = total ? `استيراد ${fmtN(total)} صف من الملف` : 'استيراد';
+  }
+
+  // الكفلاء أولاً، ثم الكفالات، ثم الحركات (حتى تلاقي دفعات الكفالة كفالاتها)
+  async function importFinBatches(batches) {
+    const order = { sponsors: 0, kafalat: 1, tx: 2 };
+    const done = [];
+    for (const b of batches.slice().sort((x, y) => order[x.kind] - order[y.kind])) {
+      const r = await importNow('finance.import', { kind: b.kind, type: '', rows: b.rows }, `استيراد ${FIN_IMPORT[b.kind].label} من ورقة ${b.sheet}`);
+      done.push({ b, r });
+    }
+    if (done.some(x => !x.r)) return; // بدون إنترنت: انحفظ وبيُستورد لاحقاً
+    setTimeout(() => openModal({
+      title: 'تم الاستيراد',
+      body: html`${done.map(({ b, r }) => html`<p style="margin-top:8px"><strong>ورقة «${b.sheet}»</strong> (${FIN_IMPORT[b.kind].label})</p>
+        <ul class="warn-list ok"><li>أُضيف: ${fmtN(r.created)}${r.updated ? `، حُدّث: ${fmtN(r.updated)}` : ''}${r.skipped ? `، مسجّل سابقاً فلم يتكرر: ${fmtN(r.skipped)}` : ''}${r.sponsorsCreated ? `، كفلاء جدد: ${fmtN(r.sponsorsCreated)}` : ''}</li></ul>
+        ${r.errorCount || b.bad.length ? html`<ul class="warn-list">${b.bad.slice(0, 5).map(x => html`<li>الصف ${fmtN(x.line)}: ${x.msg}</li>`)}${r.errors.slice(0, 10).map(x => html`<li>الصف ${fmtN(x.line)}: ${x.error}</li>`)}</ul>` : ''}`)}`,
+    }), 50);
+  }
+
+  /* قراءة ملف إكسل (xlsx) على الجهاز: كل ورقة جدول نصوص، والتواريخ يوم/شهر/سنة */
+  async function readXlsx(file) {
+    if (!/\.xlsx$/i.test(file.name)) throw new Error(`الملف «${file.name}» ليس بصيغة xlsx. احفظه من إكسل بصيغة «مصنف Excel (xlsx)» ثم اختره.`);
+    const zip = await unzipXlsx(new Uint8Array(await file.arrayBuffer()));
+    const dec = new TextDecoder();
+    const doc = name => new DOMParser().parseFromString(zip[name] ? dec.decode(zip[name]) : '<x/>', 'application/xml');
+    const tags = (node, name) => [...node.getElementsByTagNameNS('*', name)];
+    const text = node => tags(node, 't').map(t => t.textContent).join('');
+    const shared = tags(doc('xl/sharedStrings.xml'), 'si').map(text);
+    const st = doc('xl/styles.xml');
+    const fmts = {};
+    tags(st, 'numFmt').forEach(n => { fmts[n.getAttribute('numFmtId')] = n.getAttribute('formatCode') || ''; });
+    const xfRoot = tags(st, 'cellXfs')[0];
+    const isDate = xfRoot ? [...xfRoot.children].map(x => { const id = +x.getAttribute('numFmtId'); return (id >= 14 && id <= 22) || /[dy]/i.test(String(fmts[id] || '').replace(/"[^"]*"|\[[^\]]*\]/g, '')); }) : [];
+    const rels = {};
+    tags(doc('xl/_rels/workbook.xml.rels'), 'Relationship').forEach(r => { rels[r.getAttribute('Id')] = r.getAttribute('Target'); });
+    const colOf = ref => [...String(ref).replace(/\d+/g, '')].reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0) - 1;
+    const dmy = n => { const d = new Date(Date.UTC(1899, 11, 30) + Math.floor(n) * 864e5); return `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`; };
+    return tags(doc('xl/workbook.xml'), 'sheet').map(sh => {
+      const rid = [...sh.attributes].find(a => /(^|:)id$/.test(a.name));
+      let path = String(rels[rid && rid.value] || '');
+      path = path.startsWith('/') ? path.slice(1) : 'xl/' + path.replace(/^\.\//, '');
+      const rows = [];
+      tags(doc(path), 'row').forEach((row, ri) => {
+        const r = [];
+        tags(row, 'c').forEach(c => {
+          const ref = c.getAttribute('r'), t = c.getAttribute('t'), v = tags(c, 'v')[0];
+          const raw = v ? v.textContent : '';
+          let val = '';
+          if (t === 's') val = shared[+raw] || '';
+          else if (t === 'inlineStr') val = text(c);
+          else if (t === 'b') val = raw === '1' ? 'نعم' : 'لا';
+          else if (raw !== '') val = t !== 'str' && isDate[+c.getAttribute('s') || 0] && !isNaN(+raw) ? dmy(+raw) : raw;
+          r[ref ? colOf(ref) : r.length] = val;
+        });
+        rows[row.getAttribute('r') ? +row.getAttribute('r') - 1 : ri] = Array.from(r, x => (x == null ? '' : String(x)));
+      });
+      return { name: sh.getAttribute('name') || '', rows: Array.from(rows, r => r || []) };
+    });
+  }
+
+  // ملف xlsx هو zip: بنفك بس ملفات الجداول
+  async function unzipXlsx(u8) {
+    const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    let e = u8.length - 22;
+    while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+    if (e < 0) throw new Error('تعذّرت قراءة الملف. تأكد أنه ملف إكسل بصيغة xlsx.');
+    const count = dv.getUint16(e + 10, true), dec = new TextDecoder(), out = {};
+    let p = dv.getUint32(e + 16, true);
+    for (let i = 0; i < count; i++) {
+      const method = dv.getUint16(p + 10, true), size = dv.getUint32(p + 20, true), off = dv.getUint32(p + 42, true);
+      const nl = dv.getUint16(p + 28, true), name = dec.decode(u8.subarray(p + 46, p + 46 + nl));
+      p += 46 + nl + dv.getUint16(p + 30, true) + dv.getUint16(p + 32, true);
+      if (!/^xl\/(workbook\.xml|_rels\/workbook\.xml\.rels|sharedStrings\.xml|styles\.xml|worksheets\/[^\/]+\.xml)$/.test(name)) continue;
+      const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true);
+      const data = u8.subarray(start, start + size);
+      if (method === 0) out[name] = data;
+      else if (method === 8) {
+        if (typeof DecompressionStream === 'undefined') throw new Error('هذا المتصفح لا يقرأ ملفات إكسل. حدّثه، أو انسخ الجدول من إكسل والصقه.');
+        out[name] = new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+      }
+    }
+    return out;
+  }
+
+  function syncFinImport(form) {
+    const kind = form.kind.value;
+    $('#finType', form).hidden = kind !== 'tx';
+    $('#finHint', form).textContent = FIN_IMPORT[kind].hint;
+    renderImportPreview(form.paste);
+  }
+
+  function renderFinancePreview(textarea, el, btn) {
+    const form = textarea.form, kind = form.kind.value;
+    let res;
+    try {
+      res = parseFinance(kind, textarea.value, form.type.value);
+    } catch (e) {
+      el.innerHTML = textarea.value.trim() ? html`<p class="form-error">${e.message}</p>` : '';
+      btn.textContent = 'استيراد';
+      return;
+    }
+    if (kind === 'tx' && res.titleType && !form.type.value) form.type.value = res.titleType;
+    const cols = kind === 'tx' ? [['التاريخ', r => fDate(r.date)], ['النوع', r => r.type], ['المبلغ', r => money(r.amount)], ['البند', r => r.category || '—'], ['الجهة', r => r.party || '—']]
+      : kind === 'kafalat' ? [['الكافل', r => r.sponsorName], ['المستفيد', r => r.beneficiaryName || 'كفالة عامة'], ['شهرياً', r => money(r.monthly)], ['من', r => fDate(r.startDate)], ['الحالة', r => (r.active ? 'فعّالة' : 'متوقفة')]]
+      : [['الاسم', r => r.name], ['الهاتف', r => r.phone || '—'], ['ملاحظات', r => r.notes || '—']];
+    el.innerHTML = html`
+      <div class="import-sum">${chip(`صفوف صالحة: ${fmtN(res.rows.length)}`, 'green')}${res.bad.length ? chip(`صفوف ناقصة: ${fmtN(res.bad.length)}`, 'bad') : ''}</div>
+      ${res.bad.length ? html`<ul class="warn-list">${res.bad.slice(0, 10).map(b => html`<li>الصف ${fmtN(b.line)}: ${b.msg}، ولن يُستورد.</li>`)}
+        ${res.bad.length > 10 ? html`<li>و${fmtN(res.bad.length - 10)} صفوف أخرى.</li>` : ''}</ul>` : ''}
+      ${res.rows.length ? html`<div class="table-wrap"><table>
+        <thead><tr>${cols.map(c => html`<th>${c[0]}</th>`)}</tr></thead>
+        <tbody>${res.rows.slice(0, 100).map(r => html`<tr>${cols.map(c => html`<td>${c[1](r)}</td>`)}</tr>`)}</tbody>
+      </table></div>` : ''}`;
+    btn.textContent = res.rows.length ? `استيراد ${fmtN(res.rows.length)} صف` : 'استيراد';
   }
 
   function financeCharts(f) {
@@ -3701,6 +4004,57 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   const kafalaChoices = () => [...new Set(((readOf('sponsors.list', {}) || S.sponsorsCache || []).map(s => s.name))
     .concat((S.usersCache || []).map(u => u.kafalaNote)).map(v => String(v || '').trim()).filter(Boolean))];
 
+  /* ═════════ الهيكلية الإدارية ═════════ */
+  // كل موظف إله منصب (يكتبه المدير)، وإذا ما انكتب بينحسب من دوره بالنظام. المستويات من فوق لتحت.
+  const ORG_TIERS = [
+    { name: 'إدارة المركز', titles: ['مدير المركز', 'نائب المدير'] },
+    { name: 'الشؤون الإدارية والمالية', titles: ['أمين السر', 'المسؤول المالي', 'مسؤول الأنشطة', 'لجنة الاختبارات', 'إداري'] },
+    { name: 'أمراء المراحل', titles: ['أمير المرحلة'], match: t => /^أمير/.test(t) },
+    { name: 'المشرفون', titles: ['مشرف'], match: t => /^مشرف/.test(t) },
+    { name: 'المحفّظون', titles: ['محفّظ'], match: t => /^محف[ّ]?ظ/.test(t) },
+  ];
+  const ORG_TITLES = ORG_TIERS.flatMap(t => t.titles);
+  const roleTitle = u => (u.role === ROLE.ADMIN ? 'مدير المركز' : AMIRS.includes(u.role) ? 'أمير ' + stageName(AMIR_STAGE[u.role])
+    : u.role === ROLE.ACCOUNTANT ? 'المسؤول المالي' : u.role === ROLE.EXAMINER ? 'لجنة الاختبارات' : 'محفّظ');
+  const orgTitle = u => String(u.adminTitle || '').trim() || roleTitle(u);
+  // المنصب اللي مش بالقائمة بينحط مع الشؤون الإدارية
+  const tierOf = title => { const i = ORG_TIERS.findIndex(t => t.titles.includes(title) || (t.match && t.match(title))); return i < 0 ? 1 : i; };
+
+  function orgTiers(users) {
+    const list = users.filter(u => u.active !== false);
+    return ORG_TIERS.map((t, ti) => {
+      const groups = new Map();
+      list.filter(u => tierOf(orgTitle(u)) === ti).forEach(u => { const k = orgTitle(u); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(u); });
+      const rank = k => { const i = t.titles.indexOf(k); return i < 0 ? 99 : i; };
+      return { name: t.name, groups: [...groups.entries()].sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0], 'ar'))
+        .map(([title, us]) => ({ title, users: us.sort((a, b) => a.name.localeCompare(b.name, 'ar')) })) };
+    }).filter(t => t.groups.length);
+  }
+
+  function orgChart(users) {
+    const tiers = orgTiers(users);
+    if (!tiers.length) return emptyBox('لا يوجد موظفون بعد.');
+    return html`<p class="sub" style="margin-bottom:14px">يُحدَّد منصب كل شخص من «تعديل البيانات»، وإذا لم يُحدَّد يُؤخذ من دوره في النظام.</p>
+      <div class="org">${tiers.map(t => html`<section class="org-tier">
+        <h3 class="org-tier-name">${t.name}</h3>
+        <div class="org-groups">${t.groups.map(g => html`<div class="org-group">
+          <div class="org-title">${g.title}${g.users.length > 1 ? html`<span class="org-count">${fmtN(g.users.length)}</span>` : ''}</div>
+          <div class="org-people">${g.users.map(u => html`<a href="#" class="org-person" data-go="teacher" data-params="${params({ id: u.id })}">${u.name}
+            ${halaqaOf(u.id) ? html`<small>${halaqaOf(u.id)}</small>` : ''}</a>`)}</div>
+        </div>`)}</div>
+      </section>`)}</div>`;
+  }
+
+  function exportOrg() {
+    const tiers = orgTiers(S.usersCache || []);
+    if (!tiers.length) return nothing('بيانات');
+    const rows = [];
+    tiers.forEach(t => t.groups.forEach(g => g.users.forEach(u => rows.push([t.name, g.title, u.name, u.phone, halaqaOf(u.id), u.role]))));
+    exportBook(`الهيكلية الإدارية ${S.today}.xlsx`, [{ name: 'الهيكلية الإدارية', title: `الهيكلية الإدارية - ${S.settings.orgName || ''}`.replace(/ - $/, ''),
+      subtitle: `عدد العاملين: ${rows.length}`,
+      columns: ['المستوى', 'المنصب', { label: 'الاسم', name: true }, 'رقم الجوال', 'الحلقة', 'الدور في النظام'], rows }]);
+  }
+
   async function pageUsers(main, p, seq) {
     const users = await load('users.list');
     if (stale(seq)) return;
@@ -3709,14 +4063,14 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const tab = admin ? p.tab || 'teachers' : 'teachers';
     const teachers = teachersOf(users);
     const others = users.filter(u => !teachers.includes(u)); // المدير والمحاسب والأمير اللي مش محفّظ
-    const tabs = [['teachers', `المحفّظون (${teachers.length})`], ['accounts', `الحسابات الأخرى (${others.length})`]];
+    const tabs = [['teachers', `المحفّظون (${teachers.length})`], ['accounts', `الحسابات الأخرى (${others.length})`], ['org', 'الهيكلية الإدارية']];
     const delBtn = u => same(u.id, S.user.id) ? '' : html`<button class="icon-btn danger" data-act="user-del" data-id="${u.id}" data-name="${u.name}" aria-label="حذف">${icon('trash')}</button>`;
     main.innerHTML = html`
       <div class="page-head">
         <div><h1>المحفّظون</h1><p class="sub">${admin ? 'بيانات المحفّظين وحسابات الدخول للنظام' : `محفّظو الحلقات التي فيها طلاب ${stageName(myStage())}`}</p></div>
         <div class="ph-actions">
           ${tab === 'teachers' && teachers.length ? html`<button class="btn secondary" data-act="export-teachers">${icon('download')}تصدير إلى إكسل</button>` : ''}
-          ${!admin ? '' : tab === 'teachers'
+          ${!admin ? '' : tab === 'org' ? html`<button class="btn secondary" data-act="export-org">${icon('download')}تصدير إلى إكسل</button>` : tab === 'teachers'
             ? html`<button class="btn secondary" data-act="teachers-import">استيراد المحفّظين من إكسل</button>
               <button class="btn" data-act="teacher-new">${icon('plus')}إضافة محفّظ</button>`
             : html`<button class="btn secondary" data-act="export-accounts">${icon('download')}تصدير إلى إكسل</button>
@@ -3733,6 +4087,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
           ${admin ? html`<td>${u.active ? chip('فعّال', 'good') : chip('معطّل', 'warn')}</td>
           <td class="actions"><button class="icon-btn" data-act="user-edit" data-id="${u.id}" aria-label="تعديل">${icon('edit')}</button>${delBtn(u)}</td>` : ''}</tr>`)}</tbody>
       </table></div>${paged('teachers', teachers).bar}` : emptyBox(admin ? 'لا يوجد محفّظون بعد. أضفهم واحداً تلو الآخر، أو استورد كشفهم من إكسل.' : 'لا يوجد محفّظون لحلقات مرحلتك.'))
+      : tab === 'org' ? orgChart(users)
       : html`<p class="sub" style="margin-bottom:12px">يطّلع المدير على جميع البيانات، والمحفّظ على حلقاته فقط، وأمير المرحلة على طلاب مرحلته وحلقاتهم ومحفّظيها (ويعبّئ تقرير حلقته إذا كان محفّظاً لها)، والمحاسب على المالية.</p>
         <div class="table-wrap"><table>
         <thead><tr><th class="idx">#</th><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>رقم الجوال</th><th>الحالة</th><th></th></tr></thead>
@@ -3755,6 +4110,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
           <label class="field"><span>الاسم رباعياً</span><input name="name" required value="${u.name || ''}"></label>
           <label class="field"><span>الدور</span><select name="role">${options([ROLE.TEACHER, ...AMIRS, ROLE.EXAMINER, ROLE.ACCOUNTANT, ROLE.ADMIN], u.role || ROLE.TEACHER)}</select></label>
         </div>
+        <label class="field"><span>المنصب في الهيكلية الإدارية</span><input name="adminTitle" list="adminTitles" value="${u.adminTitle || ''}" placeholder="${roleTitle(u.role ? u : { role: ROLE.TEACHER })} (حسب الدور)">
+          <datalist id="adminTitles">${[...new Set(ORG_TITLES.concat((S.usersCache || []).map(x => x.adminTitle).filter(Boolean)))].map(t => html`<option value="${t}">`)}</datalist></label>
         <div class="grid2">
           <label class="field"><span>رقم الهوية (هو اسم المستخدم)</span><input name="nationalId" dir="ltr" inputmode="numeric" ${u.username && !u.nationalId ? '' : raw('required')} value="${u.nationalId || ''}"></label>
           <label class="field"><span>تاريخ الميلاد</span><input type="date" name="birthDate" value="${u.birthDate || ''}"></label>
@@ -4002,7 +4359,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       id, name: String(data.name || '').trim(), role: data.role, nationalId: nid || u.nationalId || '', username: nid || u.username || '',
       active: data.active !== false, phone: toLatin(data.phone).replace(/[^\d+]/g, ''),
     });
-    ['maritalStatus', 'juzCount', 'kafalaNote', 'workType', 'course', 'job', 'housing', 'bank', 'wallet', 'payPhone', 'birthDate']
+    ['maritalStatus', 'juzCount', 'kafalaNote', 'workType', 'course', 'job', 'housing', 'bank', 'wallet', 'payPhone', 'birthDate', 'adminTitle']
       .forEach(k => { if (k in data) rec[k] = String(data[k] == null ? '' : data[k]).trim(); });
     delete rec.password; delete rec.resetToId;
     patchReads('users.list', list => {
@@ -4108,7 +4465,11 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       return i === 0 ? 5 : Math.min(55, Math.round(longest * 1.2 + 4));
     };
     const lastCol = colName(cols.length - 1);
-    const last = lastCol + (data.length + H);
+    // foot: صف المجموع تحت الجدول (بنفس لون العناوين)
+    const foot = sh.foot ? [''].concat(sh.foot) : null;
+    const footRow = data.length + H + 1;
+    const footCell = (v, ref) => (v === '' || v == null ? `<c r="${ref}" s="7"/>` : typeof v === 'number' ? `<c r="${ref}" s="7"><v>${v}</v></c>` : str(ref, 7, v));
+    const last = lastCol + (data.length + H + (foot ? 1 : 0));
     const band = (r, s, text) => `<row r="${r}" ht="${r === 1 ? 32 : 24}" customHeight="1">${cols.map((c, i) => (i ? `<c r="${colName(i)}${r}" s="${s}"/>` : str('A' + r, s, text))).join('')}</row>`;
     return XML_HEAD + `<worksheet xmlns="${NS}spreadsheetml/2006/main" xmlns:r="${NS}officeDocument/2006/relationships">`
       + '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>'
@@ -4120,6 +4481,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       + (sh.title ? band(1, 5, sh.title) + band(2, 6, sh.subtitle || '') : '')
       + `<row r="${H}" ht="28" customHeight="1">${cols.map((c, i) => str(colName(i) + H, head, c.label)).join('')}</row>`
       + data.map((r, ri) => `<row r="${ri + H + 1}">${cols.map((c, i) => cell(r[i], colName(i) + (ri + H + 1), c)).join('')}</row>`).join('')
+      + (foot ? `<row r="${footRow}" ht="26" customHeight="1">${cols.map((c, i) => footCell(foot[i], colName(i) + footRow)).join('')}</row>` : '')
       + '</sheetData>'
       + (sh.title && cols.length > 1 ? `<mergeCells count="2"><mergeCell ref="A1:${lastCol}1"/><mergeCell ref="A2:${lastCol}2"/></mergeCells>` : '')
       + '<pageMargins left="0.3" right="0.3" top="0.4" bottom="0.4" header="0.2" footer="0.2"/>'
@@ -4228,6 +4590,34 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const rows = filteredStudents();
     if (!rows.length) { toast('لا يوجد طلاب للتصدير', 'error'); return; }
     exportStudentsBook(rows, `الطلاب ${S.today}.xlsx`);
+  }
+
+  // كشف الطلاب ببياناتهم، أو أعداد الطلاب في كل مرحلة فقط
+  function studentsExportForm() {
+    openModal({
+      title: 'تصدير الطلاب إلى إكسل',
+      cls: 'narrow',
+      submitLabel: 'تصدير',
+      body: html`<div class="field"><span>ماذا تريد أن تصدّر؟</span><div class="seg seg-col" role="radiogroup">
+          <label><input type="radio" name="kind" value="list" checked><span>كشف الطلاب ببياناتهم (ورقة لكل حلقة)</span></label>
+          <label><input type="radio" name="kind" value="count"><span>عدد الطلاب في كل مرحلة فقط، وتحته العدد الإجمالي</span></label></div></div>
+        <p class="hint">يُصدَّر الطلاب الظاهرون حسب البحث والتصفية في صفحة الطلاب.</p>`,
+      onSubmit: async data => { if (data.kind === 'count') exportStageCounts(); else exportStudents(); },
+    });
+  }
+
+  function exportStageCounts() {
+    const rows = filteredStudents();
+    if (!rows.length) { toast('لا يوجد طلاب للتصدير', 'error'); return; }
+    const stageOf = s => s.stage || (S.halaqat.find(h => same(h.id, s.halaqaId)) || {}).stage || '';
+    const count = {};
+    rows.forEach(s => { const k = stageOf(s); count[k] = (count[k] || 0) + 1; });
+    const list = S.lists.stages.map(st => [stageName(st), count[st] || 0]);
+    if (count['']) list.push(['دون مرحلة', count['']]);
+    const f = S.params.filter || {};
+    const sub = [`حتى ${fDate(S.today)}`, f.halaqa ? halaqaName(f.halaqa) : '', f.status ? 'الحالة: ' + f.status : '', f.q ? 'بحث: ' + f.q : ''].filter(Boolean).join('     ');
+    exportBook(`عدد الطلاب حسب المرحلة ${S.today}.xlsx`, [{ name: 'عدد الطلاب', title: 'عدد طلاب المركز حسب المرحلة', subtitle: sub,
+      columns: [{ label: 'المرحلة', name: true }, 'عدد الطلاب'], rows: list, foot: ['العدد الإجمالي', rows.length] }]);
   }
 
   function exportStudentsBook(rows, fileName) {
@@ -4386,38 +4776,100 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   }
 
   // المالية: الحركات ورقة لكل نوع، والمكافآت للطلاب وللمحفّظين، والكفالات، والكفلاء
+  // أوراق كل قسم بالمالية (نفس الشكل بالتصدير من التبويب، وبملف المالية الكامل)
+  const FIN_SECTIONS = [['summary', 'الملخص'], ['tx', 'الحركات المالية'], ['rewards', 'المكافآت'], ['kafalat', 'الكفالات'], ['sponsors', 'الكفلاء والمتبرعون']];
+  const finSheets = {
+    summary: f => {
+      const ins = f.categories.filter(c => c.kind === 'in'), outs = f.categories.filter(c => c.kind === 'out');
+      return [
+        { name: 'الملخص', title: 'ملخص المالية', subtitle: `شهر ${fMonth(f.month)}     حتى ${fDate(S.today)}`, columns: [{ label: 'البيان', name: true }, 'القيمة'],
+          rows: [['الرصيد الحالي', f.balance], [`إيرادات ${fMonth(f.month)}`, f.monthIn], [`مصروفات ${fMonth(f.month)}`, f.monthOut],
+            ['الكفالات الفعّالة', f.activeKafalat], ['المتوقع شهرياً من الكفالات', f.monthlyExpected], ['متأخرات الكفالات', f.arrearsTotal]] },
+        { name: 'حسب الشهر', title: 'الإيرادات والمصروفات حسب الشهر', subtitle: 'آخر ستة أشهر', columns: [{ label: 'الشهر', name: true }, 'الإيرادات', 'المصروفات', 'الصافي'],
+          rows: f.months.map(m => [fMonth(m.month), m.income, m.expense, m.income - m.expense]),
+          foot: ['المجموع', sumOf(f.months, 'income'), sumOf(f.months, 'expense'), sumOf(f.months, 'income') - sumOf(f.months, 'expense')] },
+        { name: 'حسب البند', title: `الإيرادات والمصروفات حسب البند لشهر ${fMonth(f.month)}`, subtitle: `الإيرادات ${money(f.monthIn)}     المصروفات ${money(f.monthOut)}`,
+          columns: [{ label: 'البند', name: true }, 'النوع', 'المبلغ'], rows: ins.map(c => [c.name, 'إيراد', c.amount]).concat(outs.map(c => [c.name, 'مصروف', c.amount])) },
+        { name: 'الكفالات المتأخرة', title: 'الكفالات المتأخرة', subtitle: `المجموع ${money(f.arrearsTotal)}`, columns: [{ label: 'الكافل', name: true }, 'المستفيد', 'شهرياً', 'المتأخر'],
+          rows: f.arrears.map(k => [k.sponsorName, k.kind === 'عامة' ? 'كفالة عامة' : k.kind + ': ' + k.beneficiaryName, k.monthly, k.arrears]) },
+      ];
+    },
+    tx: (list, period) => groupSheets(list, t => t.type, (k, items) => ({
+      name: k, title: `الحركات المالية: ${k}`, subtitle: `${period}     العدد: ${items.length}     المجموع: ${money(sumOf(items, 'amount'))}`,
+      columns: ['التاريخ', 'المبلغ', { label: 'البند', name: true }, 'الجهة', 'طريقة الدفع', 'رقم الإيصال', 'ملاحظات', 'سجّلها'],
+      rows: items.map(t => [t.date, xnum(t.amount), t.category, txParty(t), t.method, t.receipt, t.notes, t.byUser]),
+      foot: ['المجموع', sumOf(items, 'amount')],
+    })),
+    rewards: (list, period) => groupSheets(list.filter(t => t.type === 'مكافأة'), t => (t.beneficiaryKind === 'محفظ' ? 'مكافآت المحفّظين' : 'مكافآت الطلاب'), (k, items) => ({
+      name: k, title: k, subtitle: `${period}     العدد: ${items.length}     المجموع: ${money(sumOf(items, 'amount'))}`,
+      columns: ['التاريخ', { label: 'المستفيد', name: true }, 'المبلغ', 'نوع المكافأة', 'طريقة الدفع', 'ملاحظات', 'صرفها'],
+      rows: items.map(t => [t.date, t.beneficiaryName, xnum(t.amount), t.category, t.method, t.notes, t.byUser]),
+      foot: ['المجموع', '', sumOf(items, 'amount')],
+    })),
+    kafalat: ks => (ks.length ? [{ name: 'الكفالات', title: 'الكفالات', subtitle: `عدد الكفالات: ${ks.length}     المتأخرات: ${money(sumOf(ks, 'arrears'))}`,
+      columns: [{ label: 'الكافل', name: true }, 'نوع الكفالة', 'المستفيد', 'المبلغ الشهري', 'من', 'إلى', 'المدفوع', 'المستحق', 'المتأخر', 'الحالة', 'ملاحظات'],
+      rows: ks.map(k => [k.sponsorName, k.kind, k.kind === 'عامة' ? 'كفالة عامة' : k.beneficiaryName, xnum(k.monthly), k.startDate, k.endDate,
+        xnum(k.paid), xnum(k.due), xnum(k.arrears), k.active ? 'فعّالة' : 'متوقفة', k.notes]),
+      foot: ['المجموع', '', '', sumOf(ks, 'monthly'), '', '', sumOf(ks, 'paid'), sumOf(ks, 'due'), sumOf(ks, 'arrears')] }] : []),
+    sponsors: sp => (sp.length ? [{ name: 'الكفلاء والمتبرعون', title: 'الكفلاء والمتبرعون', subtitle: `العدد: ${sp.length}`,
+      columns: [{ label: 'الاسم', name: true }, 'الهاتف', 'إجمالي العطاء', 'كفالات فعّالة', 'المتأخر', 'ملاحظات'],
+      rows: sp.map(s => [s.name, s.phone, xnum(s.given), xnum(s.activeKafalat), xnum(s.arrears), s.notes]),
+      foot: ['المجموع', '', sumOf(sp, 'given'), sumOf(sp, 'activeKafalat'), sumOf(sp, 'arrears')] }] : []),
+  };
+
+  // التصدير من التبويب المفتوح (من البيانات المعروضة)
   function exportFinance(tab) {
     const period = S.txPeriod || '';
-    if (tab === 'tx' || tab === 'rewards') {
-      const all = S.txCache || [];
-      const list = tab === 'rewards' ? all.filter(t => t.type === 'مكافأة') : all;
-      if (!list.length) return nothing(tab === 'rewards' ? 'مكافآت' : 'حركات');
-      if (tab === 'rewards') {
-        return exportBook(`المكافآت ${S.today}.xlsx`, groupSheets(list, t => (t.beneficiaryKind === 'محفظ' ? 'مكافآت المحفّظين' : 'مكافآت الطلاب'), (k, items) => ({
-          name: k, title: k, subtitle: `${period}     العدد: ${items.length}     المجموع: ${money(sumOf(items, 'amount'))}`,
-          columns: ['التاريخ', { label: 'المستفيد', name: true }, 'المبلغ', 'نوع المكافأة', 'طريقة الدفع', 'ملاحظات', 'صرفها'],
-          rows: items.map(t => [t.date, t.beneficiaryName, xnum(t.amount), t.category, t.method, t.notes, t.byUser]),
-        })));
-      }
-      return exportBook(`الحركات المالية ${S.today}.xlsx`, groupSheets(list, t => t.type, (k, items) => ({
-        name: k, title: `الحركات المالية: ${k}`, subtitle: `${period}     العدد: ${items.length}     المجموع: ${money(sumOf(items, 'amount'))}`,
-        columns: ['التاريخ', 'المبلغ', { label: 'البند', name: true }, 'الجهة', 'طريقة الدفع', 'رقم الإيصال', 'ملاحظات', 'سجّلها'],
-        rows: items.map(t => [t.date, xnum(t.amount), t.category, txParty(t), t.method, t.receipt, t.notes, t.byUser]),
-      })));
-    }
-    if (tab === 'kafalat') {
-      const ks = S.kafalatCache || [];
-      if (!ks.length) return nothing('كفالات');
-      return exportBook(`الكفالات ${S.today}.xlsx`, [{ name: 'الكفالات', title: 'الكفالات', subtitle: `عدد الكفالات: ${ks.length}     المتأخرات: ${money(sumOf(ks, 'arrears'))}`,
-        columns: [{ label: 'الكافل', name: true }, 'نوع الكفالة', 'المستفيد', 'المبلغ الشهري', 'من', 'إلى', 'المدفوع', 'المستحق', 'المتأخر', 'الحالة', 'ملاحظات'],
-        rows: ks.map(k => [k.sponsorName, k.kind, k.kind === 'عامة' ? 'كفالة عامة' : k.beneficiaryName, xnum(k.monthly), k.startDate, k.endDate,
-          xnum(k.paid), xnum(k.due), xnum(k.arrears), k.active ? 'فعّالة' : 'متوقفة', k.notes]) }]);
-    }
-    const sp = S.sponsorsCache || [];
-    if (!sp.length) return nothing('بيانات');
-    exportBook(`الكفلاء والمتبرعون ${S.today}.xlsx`, [{ name: 'الكفلاء والمتبرعون', title: 'الكفلاء والمتبرعون', subtitle: `العدد: ${sp.length}`,
-      columns: [{ label: 'الاسم', name: true }, 'الهاتف', 'إجمالي العطاء', 'كفالات فعّالة', 'المتأخر', 'ملاحظات'],
-      rows: sp.map(s => [s.name, s.phone, xnum(s.given), xnum(s.activeKafalat), xnum(s.arrears), s.notes]) }]);
+    const name = (FIN_SECTIONS.find(x => x[0] === tab) || ['', 'المالية'])[1];
+    const sheets = tab === 'summary' ? (S.finSummary ? finSheets.summary(S.finSummary) : [])
+      : tab === 'tx' || tab === 'rewards' ? finSheets[tab](S.txCache || [], period)
+      : tab === 'kafalat' ? finSheets.kafalat(S.kafalatCache || []) : finSheets.sponsors(S.sponsorsCache || []);
+    if (!sheets.length) return nothing('بيانات');
+    exportBook(`${name} ${tab === 'summary' ? S.finSummary.month : S.today}.xlsx`, sheets);
+  }
+
+  // تصدير المالية كلها: ملف واحد فيه كل قسم بأوراقه، أو ملف منفصل لكل قسم
+  function financeExportForm() {
+    const m = S.today.slice(0, 7);
+    openModal({
+      title: 'تصدير المالية إلى إكسل',
+      submitLabel: 'تصدير',
+      body: html`
+        <div class="field"><span>طريقة التصدير</span><div class="seg seg-col" role="radiogroup">
+          <label><input type="radio" name="split" value="one" checked><span>ملف واحد فيه كل الأقسام (كل قسم بأوراقه)</span></label>
+          <label><input type="radio" name="split" value="each"><span>ملف منفصل لكل قسم</span></label></div></div>
+        <div class="field"><span>الأقسام</span><div class="checks">${FIN_SECTIONS.map(([k, l]) => html`
+          <label class="check"><input type="checkbox" name="sec_${k}" checked>${l}</label>`)}</div></div>
+        <div class="grid2">
+          <label class="field"><span>شهر الحركات والمكافآت والملخص</span><input type="month" name="month" value="${m}"></label>
+          <label class="check" style="align-self:end;padding-bottom:10px"><input type="checkbox" name="allMonths">كل الأشهر للحركات والمكافآت</label>
+        </div>
+        <p class="hint">الكفالات والكفلاء تُصدَّر كاملة. إذا اخترت «ملف منفصل لكل قسم» قد يسألك المتصفح عن السماح بتنزيل أكثر من ملف.</p>`,
+      onSubmit: async data => {
+        const secs = FIN_SECTIONS.filter(([k]) => data['sec_' + k] === 'on' || data['sec_' + k] === true);
+        if (!secs.length) throw new Error('اختر قسماً واحداً على الأقل');
+        const month = data.month || m, all = data.allMonths === 'on' || data.allMonths === true;
+        const need = k => secs.some(s => s[0] === k);
+        const [f, txs, ks, sp] = await Promise.all([
+          need('summary') ? load('finance.summary', { month }) : null,
+          need('tx') || need('rewards') ? load('transactions.list', { month: all ? 'all' : month }) : null,
+          need('kafalat') ? load('kafalat.list') : null,
+          need('sponsors') ? load('sponsors.list') : null,
+        ]);
+        const period = all ? 'كل الأشهر' : 'شهر ' + fMonth(month);
+        const of = k => (k === 'summary' ? finSheets.summary(f) : k === 'tx' || k === 'rewards' ? finSheets[k](txs, period) : k === 'kafalat' ? finSheets.kafalat(ks) : finSheets.sponsors(sp));
+        const stamp = all ? S.today : month;
+        if (data.split === 'each') {
+          const files = secs.map(([k, l]) => [l, of(k)]).filter(x => x[1].length);
+          if (!files.length) throw new Error('لا توجد بيانات في الأقسام المختارة');
+          files.forEach(([l, sheets], i) => setTimeout(() => exportBook(`${l} ${stamp}.xlsx`, sheets), i * 700));
+          return;
+        }
+        const sheets = [].concat(...secs.map(([k]) => of(k)));
+        if (!sheets.length) throw new Error('لا توجد بيانات في الأقسام المختارة');
+        exportBook(`المالية ${stamp}.xlsx`, sheets);
+      },
+    });
   }
 
   function exportCompetition() {
@@ -4596,18 +5048,21 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       toast(savedMsg(`حُذف ${nStudents(ids.length)}`));
       refreshView();
     },
-    'export-students': () => exportStudents(),
+    'export-students': () => studentsExportForm(),
     'export-teachers': () => exportTeachers(),
     'export-report': () => exportReport(),
     'export-month': el => reportExportForm(el.dataset.month),
     'export-halaqat': () => exportHalaqatList(),
     'export-halaqa': () => exportHalaqaStudents(),
     'export-accounts': () => exportAccounts(),
+    'export-org': () => exportOrg(),
     'export-student': () => exportStudentFile(),
     'export-activities': () => exportActivities(),
     'export-courses': () => exportCourses(),
     'export-exams': () => exportExams(),
     'export-finance': el => exportFinance(el.dataset.tab),
+    'finance-import': el => financeImportForm(el.dataset.tab),
+    'finance-export': () => financeExportForm(),
     'export-competition': () => exportCompetition(),
     'password': () => passwordForm(),
     'account': () => accountSheet(false),
@@ -4717,6 +5172,16 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     },
     'exam-criteria': () => criteriaForm(),
     'comp-details': () => compDetails(),
+    'rep-start-edit': el => {
+      const card = el.closest('.rep-card');
+      delete card.dataset.auto;
+      $('.rep-from', card).hidden = false;
+      $('.rep-range', card).classList.remove('end-only');
+      el.closest('.rep-start').remove();
+      card.closest('form').classList.add('dirty');
+      updateRepCalc(card);
+      $('[name=fromSurah]', card).focus();
+    },
     'course-new': el => courseForm(el.dataset.halaqa ? { audience: 'حلقة', audienceRef: idOf(el.dataset.halaqa) } : {}),
     'course-edit': el => courseForm((readOf('courses.list', {}) || []).find(c => same(c.id, el.dataset.id))),
     'course-del': async el => {
@@ -4777,6 +5242,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     'act-month': el => { if (el.value) go('activities', { month: el.value }, 'replace'); },
     'comp-period': el => { S.compPeriod = el.value; refreshView(); },
     'comp-sort': el => { S.compSort = el.value; compDetails(); },
+    'fin-files': el => loadFinFiles(el),
     'course-aud': el => go('courses', { aud: el.value }, 'replace'),
     'ex-filter': () => go('exams', { q: ($('#exQ') || {}).value || '', kind: ($('#exK') || {}).value || '', status: ($('#exS') || {}).value || '' }, 'replace'),
     'act-aud': el => go('activities', { month: el.dataset.month, aud: el.value }, 'replace'),
@@ -4846,6 +5312,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       if (form.dataset.form === 'modal' && form.dataset.activity && (t.name === 'audience' || t.name === 'status')) syncActivityForm(form);
       if (form.dataset.form === 'modal' && form.dataset.course && (t.name === 'audience' || t.name === 'trainerKind')) syncCourseForm(form);
       if (form.dataset.form === 'modal' && form.dataset.exam) syncExamForm(form);
+      if (form.dataset.form === 'modal' && form.dataset.finImport && (t.name === 'kind' || t.name === 'type')) syncFinImport(form);
       // نموذج الطالب: مرحلة الحلقة إذا ما انحدّدت مرحلة
       if (form.dataset.form === 'modal' && t.name === 'halaqaId' && form.stage && form.stage.tagName === 'SELECT' && !form.stage.value) {
         const h = S.halaqat.find(x => same(x.id, t.value));
