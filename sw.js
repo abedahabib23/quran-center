@@ -1,5 +1,5 @@
-// بيخزّن التطبيق على الجهاز حتى يفتح بدون إنترنت. النسخة: c8918e4663
-const VERSION = 'qc-c8918e4663';
+// بيخزّن التطبيق على الجهاز حتى يفتح بدون إنترنت. النسخة: f0e1992324
+const VERSION = 'qc-f0e1992324';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
