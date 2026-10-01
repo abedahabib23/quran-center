@@ -1,10 +1,15 @@
-// بيخزّن التطبيق على الجهاز حتى يفتح بدون إنترنت. النسخة: c523f4d34c
-const VERSION = 'qc-c523f4d34c';
+// بيخزّن التطبيق على الجهاز حتى يفتح بدون إنترنت. النسخة: c8918e4663
+const VERSION = 'qc-c8918e4663';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   // cache: 'reload' حتى ما ياخد نسخة قديمة من ذاكرة المتصفح
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))));
+});
+
+// النسخة الجديدة بتستنى لحتى المستخدم يضغط «تحديث الآن»
+self.addEventListener('message', e => {
+  if (e.data === 'skipWaiting') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
