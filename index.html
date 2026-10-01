@@ -139,6 +139,9 @@ tr.click:hover td { background: var(--surface-2); }
   background: var(--green-wash); color: var(--green-strong); font-family: var(--font-head); font-weight: 700; font-size: 15px;
   border: 0; cursor: pointer; padding: 0;
 }
+.install-side { width: 100%; justify-content: center; }
+.install-top { flex: none; height: 32px; padding: 0 10px; }
+.steps { margin: 6px 0 12px; padding-inline-start: 22px; display: grid; gap: 8px; font-size: 14.5px; }
 .side-user .links { display: flex; gap: 6px; flex-wrap: wrap; }
 
 .main { margin-inline-start: var(--side); padding: 28px 36px 56px; max-width: calc(var(--side) + 1160px); }
@@ -388,6 +391,43 @@ a.srow:hover { background: var(--surface-2); }
   .srow .c-halaqa, .srow .c-last { display: none; }
 }
 
+/* ───────── الأنشطة والفعاليات ───────── */
+.act-list { display: grid; }
+.panel.act-list { padding: 0; overflow: hidden; }
+.section.panel .act-list { margin-top: 6px; }
+.act { display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border-top: 1px solid var(--line); }
+.act:first-child { border-top: 0; }
+.section.panel .act { padding-inline: 0; }
+.act-date { flex: none; width: 58px; text-align: center; border-radius: 10px; background: var(--green-wash); color: var(--green-strong); padding: 6px 4px; line-height: 1.25; }
+.act-date b { display: block; font-size: 19px; }
+.act-date span { font-size: 11.5px; }
+.act-main { flex: 1; min-width: 0; }
+.act-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.act-title strong { font-size: 15px; }
+.act-meta { color: var(--muted); font-size: 13px; margin-top: 3px; }
+.act-desc { font-size: 13.5px; margin-top: 6px; color: var(--ink-2); white-space: pre-line; }
+.act-side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.act-btns { display: flex; gap: 2px; }
+.act.cancelled .act-title strong { text-decoration: line-through; color: var(--muted); }
+
+/* ───────── التنافس بين الحلقات ───────── */
+.comp .section-head { align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+.seg.sm span { padding: 5px 11px; font-size: 13px; }
+.th-sort { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; white-space: nowrap; }
+.th-sort:hover, .th-sort.on { color: var(--green-strong); }
+.th-sort.on { font-weight: 700; }
+.rank-cell { font-size: 18px; }
+.comp-bar { position: relative; min-width: 120px; height: 24px; border-radius: 6px; background: var(--surface-2); overflow: hidden; text-align: start; }
+.comp-bar i { position: absolute; top: 0; bottom: 0; inset-inline-start: 0; background: var(--green-wash); border-inline-end: 2px solid var(--green); }
+.comp-bar span { position: relative; padding-inline: 8px; line-height: 24px; font-weight: 600; }
+
+/* ───────── الاختبارات ───────── */
+.exam-mark { padding: 12px 14px; border-radius: 10px; background: var(--green-wash); color: var(--green-strong); font-size: 15px; text-align: center; }
+.exam-mark strong { font-size: 22px; margin-inline: 4px; }
+.pending-exams { border-inline-start: 4px solid var(--gold); }
+.pending-exams .row { flex-wrap: wrap; gap: 8px; }
+.pr-sub { font-size: 15px; margin: 18px 0 8px; color: #000; }
+
 /* ───────── الصفحات والتحديد الجماعي ───────── */
 .pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px 4px; }
 .pager-info { font-size: 13.5px; color: var(--muted); }
@@ -546,14 +586,22 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   // أندرويد: المتصفح بيعرض تثبيت التطبيق، بنحفظ الطلب لزر «تثبيت التطبيق»
   let installPrompt = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
-  const ROLE = { ADMIN: 'مدير', TEACHER: 'محفظ', ACCOUNTANT: 'محاسب' };
+  window.addEventListener('appinstalled', () => { installPrompt = null; });
+  // زر التثبيت بيضل ظاهر طول ما النظام مفتوح بالمتصفح (مش كتطبيق مثبّت)، حتى لو انحذف التطبيق من الجوال
+  const canInstall = () => !standalone() && !!(API_URL || APP_URL);
+  // برابط جوجل الزر بيفتح رابط التطبيق، وبالتطبيق نفسه بيثبّت
+  const installCtl = (cls, label) => !canInstall() ? ''
+    : API_URL ? html`<button type="button" class="${cls}" data-act="app-install">${icon('download')}${label}</button>`
+    : html`<a class="${cls}" href="${APP_URL}" target="_blank" rel="noopener">${icon('download')}${label}</a>`;
+  const ROLE = { ADMIN: 'مدير', TEACHER: 'محفظ', ACCOUNTANT: 'محاسب', EXAMINER: 'مختبر' };
   const AMIRS = ['أمير إبتدائي', 'أمير إعدادي', 'أمير ثانوي']; // أمير المرحلة بيشوف طلاب مرحلته للعرض
-  const ALL = [ROLE.ADMIN, ROLE.TEACHER, ROLE.ACCOUNTANT, ...AMIRS];
+  const ALL = [ROLE.ADMIN, ROLE.TEACHER, ROLE.ACCOUNTANT, ROLE.EXAMINER, ...AMIRS];
   const TEACHING = [ROLE.ADMIN, ROLE.TEACHER];
   const VIEW = [...TEACHING, ...AMIRS];
   const FINANCE = [ROLE.ADMIN, ROLE.ACCOUNTANT];
   const ADMIN = [ROLE.ADMIN];
   const STAFF = [ROLE.ADMIN, ...AMIRS]; // المدير وأمراء المراحل: الحلقات والمحفّظون
+  const EXAM_ROLES = [...VIEW, ROLE.EXAMINER]; // الاختبارات: ومعهم المختبر
   const WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; // حسب getDay()
 
   const Q = window.QURAN || { surahs: [], juz: [] };
@@ -681,6 +729,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     lock: '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>',
     receipt: '<path d="M6 3.5h12v17l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
     download: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/>',
+    flag: '<path d="M5.5 21V4"/><path d="M5.5 4.5h11l-2.2 4 2.2 4h-11"/>',
+    medal: '<circle cx="12" cy="15" r="5.5"/><path d="M8.6 10.6 6 3h4l2 5 2-5h4l-2.6 7.6"/><path d="m12 12.5.9 1.8 2 .3-1.4 1.4.3 2-1.8-.9-1.8.9.3-2-1.4-1.4 2-.3z"/>',
     gift: '<rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8.5V20"/><path d="M12 8.5C10.5 5 7 4.5 7 6.8S10 8.5 12 8.5zM12 8.5c1.5-3.5 5-4 5-1.7S14 8.5 12 8.5z"/>',
   };
   const icon = (name, cls = '') => raw(`<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`);
@@ -741,6 +791,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   }
 
   async function call(action, payload) {
+    // دخل بدون إنترنت ولسا ما تجدّدت الجلسة: بنشتغل من نسخة الجهاز وبنحاول نجدّدها
+    if (!S.token) { relogin(); throw offlineError(); }
     try {
       const r = await serverCall('api', S.token, action, payload || {});
       setOnline(true);
@@ -901,7 +953,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   const nowStamp = () => stampOf(Date.now());
   const pendingText = n => (n === 1 ? 'تعديل واحد' : n === 2 ? 'تعديلان' : `${fmtN(n)} ${n <= 10 ? 'تعديلات' : 'تعديلاً'}`);
   // بدون إنترنت بنوضّح إنه التعديل محفوظ على الجهاز
-  const savedMsg = msg => (online ? msg : msg + ' على هذا الجهاز، وسيُحدَّث الشيت تلقائياً عند عودة الإنترنت');
+  const savedMsg = msg => msg; // الحفظ بيبيّن عادي للمستخدم، والمزامنة بتصير بالخلفية بدون ما يحس فيها
 
   function saveOutbox() {
     if (!local.set('outbox', outbox)) {
@@ -979,7 +1031,6 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       Object.keys(r.data).forEach(k => reads.set(k, { v: r.data[k], t: now }));
       saveReadsSoon();
       local.set('packedAt', now);
-      if (!last) toast('النظام جاهز للعمل دون إنترنت على هذا الجهاز');
       quietRender();
     } catch (e) { /* بنحاول لاحقاً */ } finally {
       packing = false;
@@ -1009,7 +1060,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     reads.forEach(x => { x.t = 0; }); // كل النسخ بتتحدّث أول ما تنفتح
     refreshFromServer();
     setTimeout(() => packAll(true), 4000);
-    if (failed.length) toast(`تعذّر حفظ ${pendingText(failed.length)} في الشيت. اضغط على مؤشر المزامنة لمعرفة السبب.`, 'error');
+    if (failed.length) toast(`تعذّر حفظ ${pendingText(failed.length)}. اضغط على التنبيه أسفل الشاشة لمعرفة السبب.`, 'error');
   }
 
   let refreshingAll = false;
@@ -1049,10 +1100,11 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     store.del(TOKEN_KEY);
     S.token = null;
     closeModal();
-    showLogin(n ? `انتهت الجلسة. سجّل الدخول من جديد لإرسال ${pendingText(n)} محفوظة على هذا الجهاز.` : 'انتهت الجلسة، سجّل الدخول من جديد.');
+    showLogin('انتهت الجلسة، سجّل الدخول من جديد.');
   }
 
   function setOnline(v) {
+    if (v && !S.token) relogin();
     if (online === v) return;
     online = v;
     renderSync();
@@ -1075,12 +1127,70 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     // كل 20 ثانية: إذا في تعديلات بنحاول نبعتها، وإذا ما في اتصال بنفحص إذا رجع
     setInterval(() => {
       if (!S.user) return;
-      if (outbox.length) flush();
+      if (!S.token && pendingCreds) relogin();
+      else if (outbox.length) flush();
       else if (!online) ping();
     }, 20000);
   }
 
-  // مؤشر صغير: دون اتصال، أو عم يبعت، أو في تعديلات ما انحفظت
+  /* ═════════ تسجيل الدخول بدون إنترنت ═════════ */
+  // بعد أول دخول ناجح بنحفظ على الجهاز بصمة كلمة المرور (مش كلمة المرور نفسها)،
+  // فبيقدر يرجع يسجّل دخول بدون إنترنت، ولما يرجع الإنترنت بتتجدّد الجلسة لحالها
+
+  let pendingCreds = null, relogging = false;
+  const subtle = window.crypto && window.crypto.subtle;
+  const toB64 = buf => btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
+  const userIndex = () => { try { return JSON.parse(store.get(LOCAL + 'users') || '{}'); } catch (e) { return {}; } };
+
+  async function passPrint(password, salt) {
+    const key = await subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bits = await subtle.deriveBits({ name: 'PBKDF2', salt: Uint8Array.from(atob(salt), c => c.charCodeAt(0)), iterations: 150000, hash: 'SHA-256' }, key, 256);
+    return toB64(bits);
+  }
+
+  async function savePassPrint(uid, username, password) {
+    if (!subtle) return;
+    try {
+      const salt = toB64(crypto.getRandomValues(new Uint8Array(16)));
+      localStorage.setItem(local.key('auth', uid), JSON.stringify({ salt, hash: await passPrint(password, salt) }));
+      const idx = userIndex();
+      idx[String(username).trim().toLowerCase()] = String(uid);
+      store.set(LOCAL + 'users', JSON.stringify(idx));
+    } catch (e) { /* الدخول بدون إنترنت مش متاح بهالمتصفح */ }
+  }
+
+  async function offlineLogin(username, password) {
+    const uid = userIndex()[String(username).trim().toLowerCase()];
+    const auth = uid && local.get('auth', uid), saved = uid && local.get('boot', uid);
+    if (!subtle || !auth || !saved) throw new Error('لا يوجد اتصال بالإنترنت. أول تسجيل دخول على هذا الجهاز يحتاج إلى إنترنت، وبعدها يمكنك الدخول دونه.');
+    if (await passPrint(password, auth.salt) !== auth.hash) throw new Error('اسم المستخدم أو كلمة المرور غير صحيحة');
+    return { uid, saved };
+  }
+
+  // أول ما يرجع الإنترنت: دخول بالخلفية بنفس البيانات، وبعدين بتنبعت التعديلات
+  async function relogin() {
+    if (!pendingCreds || relogging || S.token || !S.user) return;
+    relogging = true;
+    try {
+      const c = pendingCreds;
+      const r = await serverCall('login', c.username, c.password);
+      if (!S.user) return;
+      S.token = r.token;
+      store.set(TOKEN_KEY, r.token);
+      store.set(LOCAL + 'last', JSON.stringify({ uid: S.user.id, token: S.token }));
+      savePassPrint(S.user.id, c.username, c.password);
+      pendingCreds = null;
+      setOnline(true);
+      flushSoon(0);
+      if (!outbox.length) refreshFromServer();
+    } catch (e) {
+      if (!e.offline) { pendingCreds = null; sessionLost(); }
+    } finally {
+      relogging = false;
+    }
+  }
+
+  // تنبيه صغير بس إذا في تعديلات ما قدرت تنحفظ (المزامنة العادية ما بتبيّن للمستخدم)
   function renderSync() {
     let el = document.getElementById('syncPill');
     if (!el) {
@@ -1093,41 +1203,21 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     let text = '', kind = '';
     if (!S.user) text = '';
     else if (failed.length) { text = `تعذّر حفظ ${pendingText(failed.length)}`; kind = 'bad'; }
-    else if (flushing) { text = 'جارٍ إرسال التعديلات…'; kind = 'busy'; }
-    else if (!online) { text = outbox.length ? `دون اتصال، ${pendingText(outbox.length)} على الجهاز` : 'دون اتصال بالإنترنت'; kind = 'off'; }
-    else if (outbox.length) { text = `${pendingText(outbox.length)} بانتظار الإرسال`; kind = 'busy'; }
-    else if (packing && !local.get('packedAt')) { text = 'جارٍ تجهيز النظام للعمل دون إنترنت…'; kind = 'busy'; }
     el.hidden = !text;
     el.className = 'sync-pill ' + kind;
     el.innerHTML = text ? html`<span class="dot" aria-hidden="true"></span>${text}` : '';
   }
 
+  // التعديلات اللي رفضها النظام (متل رقم هوية مكرّر) مع السبب
   function syncSheet() {
-    const when = ms => { const s = stampOf(ms); return relDay(s.slice(0, 10)) + ' ' + iso(s.slice(11)); };
     openModal({
-      title: 'المزامنة مع الشيت',
+      title: 'تعذّر حفظ بعض التعديلات',
       cls: 'narrow',
       body: html`
-        <p class="notice ${online ? 'ok' : ''}">${online
-          ? 'متصل بالإنترنت، وتُرسل التعديلات إلى الشيت تلقائياً.'
-          : 'لا يوجد اتصال بالإنترنت. تابع عملك كالمعتاد: تُحفظ التعديلات على هذا الجهاز وتُرسل تلقائياً عند عودة الاتصال.'}</p>
-        <p class="hint">${local.get('packedAt') ? `جميع صفحات النظام محفوظة على هذا الجهاز وتعمل دون إنترنت (آخر تحديث ${when(Number(local.get('packedAt')))}).`
-          : 'لم تُحفظ صفحات النظام على هذا الجهاز بعد، وتُحفظ تلقائياً عند الاتصال بالإنترنت.'}</p>
-        ${outbox.length ? html`<h3 class="form-sec">بانتظار الإرسال (${fmtN(outbox.length)})</h3>
-          <ul class="sync-list">${outbox.map(o => html`<li><span>${o.label || o.action}</span><small>${when(o.at)}</small></li>`)}</ul>`
-          : html`<p class="muted">لا توجد تعديلات بانتظار الإرسال.</p>`}
-        ${failed.length ? html`<h3 class="form-sec">لم تُحفظ في الشيت (${fmtN(failed.length)})</h3>
-          <ul class="sync-list bad">${failed.map(f => html`<li><span>${f.label}</span><small>${f.error}</small></li>`)}</ul>
-          <p class="hint">صحّح البيانات وأعد حفظها، ثم امسح هذه القائمة.</p>` : ''}`,
-      submitLabel: outbox.length ? 'إرسال الآن' : failed.length ? 'مسح القائمة' : 'حسناً',
-      onSubmit: async () => {
-        if (outbox.length) {
-          await flush();
-          if (outbox.length) throw new Error(online ? 'تعذّر الإرسال الآن، وستُعاد المحاولة تلقائياً.' : 'لا يوجد اتصال بالإنترنت بعد.');
-          return;
-        }
-        if (failed.length) { failed = []; saveOutbox(); }
-      },
+        <ul class="sync-list bad">${failed.map(f => html`<li><span>${f.label}</span><small>${f.error}</small></li>`)}</ul>
+        <p class="hint">صحّح البيانات وأعد حفظها، ثم امسح هذه القائمة.</p>`,
+      submitLabel: 'مسح القائمة',
+      onSubmit: async () => { failed = []; saveOutbox(); },
     });
   }
 
@@ -1185,7 +1275,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     if (!fromDevice) saveBoot();
   }
 
-  function showLogin(msg) {
+  // username: بنعبّيه بعد استعادة كلمة المرور، و ok: رسالة نجاح (خضرا)
+  function showLogin(msg, username, ok) {
     S.user = null;
     renderSync();
     app.innerHTML = html`
@@ -1196,48 +1287,102 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
             <h1>${S.settings.orgName || 'نظام التحفيظ'}</h1>
             <p>سجّل دخولك لمتابعة الحلقات والحفظ</p>
           </div>
-          ${msg ? html`<p class="notice">${msg}</p>` : ''}
+          ${msg ? html`<p class="notice ${ok ? 'ok' : ''}">${msg}</p>` : ''}
           <label class="field"><span>رقم الهوية (اسم المستخدم)</span>
-            <input name="username" inputmode="numeric" autocomplete="username" required dir="ltr" autocapitalize="none" spellcheck="false"></label>
+            <input name="username" inputmode="numeric" autocomplete="username" required dir="ltr" autocapitalize="none" spellcheck="false" value="${username || ''}"></label>
           <label class="field"><span>كلمة المرور</span>
             <input name="password" type="password" autocomplete="current-password" required dir="ltr"></label>
           <p class="form-error" hidden></p>
           <button class="btn block" type="submit">دخول</button>
+          <p class="login-app"><a href="#" data-act="forgot">نسيت كلمة المرور؟</a></p>
           ${APP_URL && !API_URL ? html`<p class="login-app">للعمل دون إنترنت: <a href="${APP_URL}" target="_blank" rel="noopener">افتح النظام كتطبيق</a></p>` : ''}
           <div class="login-foot"></div>
         </form>
       </div>`;
-    setTimeout(() => { const u = $('[name=username]'); if (u) u.focus(); }, 50);
+    setTimeout(() => { const u = $(username ? '[name=password]' : '[name=username]'); if (u) u.focus(); }, 50);
+  }
+
+  // نسيت كلمة المرور: رقم الهوية + رقم الجوال المسجّل بالحساب
+  function showReset() {
+    app.innerHTML = html`
+      <div class="login">
+        <form class="login-card" data-form="reset">
+          <div class="login-brand">
+            ${brandMark(96)}
+            <h1>استعادة كلمة المرور</h1>
+            <p>أدخل رقم هويتك ورقم الجوال المسجّل في حسابك، فتعود كلمة المرور إلى رقم هويتك.</p>
+          </div>
+          <label class="field"><span>رقم الهوية</span>
+            <input name="nationalId" inputmode="numeric" autocomplete="username" required dir="ltr" spellcheck="false"></label>
+          <label class="field"><span>رقم الجوال المسجّل</span>
+            <input name="phone" inputmode="tel" autocomplete="tel" required dir="ltr" placeholder="059…"></label>
+          <p class="form-error" hidden></p>
+          <button class="btn block" type="submit">إعادة تعيين كلمة المرور</button>
+          <p class="login-app"><a href="#" data-act="back-login">رجوع لتسجيل الدخول</a></p>
+          <div class="login-foot"></div>
+        </form>
+      </div>`;
+    setTimeout(() => { const u = $('[name=nationalId]'); if (u) u.focus(); }, 50);
+  }
+
+  async function submitReset(form) {
+    const btn = $('button[type=submit]', form), err = $('.form-error', form);
+    btn.disabled = true; btn.textContent = 'جارٍ التحقق…'; err.hidden = true;
+    try {
+      const r = await serverCall('resetPassword', form.nationalId.value, form.phone.value);
+      showLogin('أُعيدت كلمة المرور إلى رقم هويتك. اكتب رقم الهوية في خانة كلمة المرور، ثم اختر كلمة مرور جديدة.', r.username, true);
+    } catch (e) {
+      err.textContent = e.offline ? 'استعادة كلمة المرور تحتاج إلى اتصال بالإنترنت.' : e.message;
+      err.hidden = false;
+      btn.disabled = false; btn.textContent = 'إعادة تعيين كلمة المرور';
+    }
   }
 
   async function submitLogin(form) {
     const btn = $('button[type=submit]', form), err = $('.form-error', form);
     btn.disabled = true; btn.textContent = 'جارٍ الدخول…'; err.hidden = true;
+    const username = form.username.value, password = form.password.value;
     try {
-      const r = await serverCall('login', form.username.value, form.password.value);
+      let r;
+      try {
+        r = await serverCall('login', username, password);
+      } catch (e) {
+        if (!e.offline) throw e;
+        // بدون إنترنت: بنفتح من نسخة الجهاز إذا سجّل دخول عليه قبل هيك
+        const o = await offlineLogin(username, password);
+        S.token = null;
+        pendingCreds = { username, password };
+        await restoreLocal(o.uid);
+        applyBootstrap(o.saved, true);
+        startApp();
+        return;
+      }
       S.token = r.token;
       store.set(TOKEN_KEY, r.token);
       setOnline(true);
+      savePassPrint(r.data.user.id, username, password);
       await restoreLocal(r.data.user.id);
       applyBootstrap(r.data);
       startApp();
       flush();
       prefetchOffline();
     } catch (e) {
-      err.textContent = e.offline ? 'تسجيل الدخول يحتاج إلى اتصال بالإنترنت، وبعد الدخول يمكنك العمل دون اتصال.' : e.message;
+      err.textContent = e.message;
       err.hidden = false;
       btn.disabled = false; btn.textContent = 'دخول';
     }
   }
 
+  // الخروج: نسخة الجهاز والتعديلات اللي ما انبعتت بيضلّوا، حتى يقدر يرجع يدخل بدون إنترنت
+  // وتنبعت التعديلات أول ما يدخل وفي إنترنت
   async function signOut() {
-    if (outbox.length && !(await confirmBox(`لديك ${pendingText(outbox.length)} لم تُرسل إلى الشيت بعد، وستُحذف من هذا الجهاز إذا خرجت الآن. انتظر عودة الإنترنت حتى تُرسل، ثم اخرج.`, 'خروج وحذف التعديلات'))) return;
     if (S.token) serverCall('logout', S.token).catch(() => {});
-    // بيانات الطلاب ما بتضل على الجهاز بعد الخروج
-    if (S.user) local.drop(S.user.id);
+    clearTimeout(readsTimer);
+    saveReads();
     store.del(TOKEN_KEY);
     store.del(LOCAL + 'last');
     S.token = null;
+    pendingCreds = null;
     outbox = []; failed = []; reads.clear();
     closeModal();
     showLogin();
@@ -1250,6 +1395,9 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     reports: { title: 'التقارير', icon: 'check', roles: VIEW, render: pageReports },
     report: { hidden: true, parent: 'reports', roles: VIEW, render: pageReport },
     students: { title: 'الطلاب', icon: 'users', roles: VIEW, render: pageStudents },
+    activities: { title: 'الأنشطة', icon: 'flag', roles: ALL, render: pageActivities },
+    courses: { title: 'الدورات', icon: 'book', roles: VIEW, render: pageCourses },
+    exams: { title: 'الاختبارات', icon: 'medal', roles: EXAM_ROLES, render: pageExams },
     student: { hidden: true, parent: 'students', roles: VIEW, render: pageStudent },
     halaqat: { title: 'الحلقات', icon: 'circle', roles: STAFF, render: pageHalaqat },
     halaqa: { hidden: true, parent: 'halaqat', roles: VIEW, render: pageHalaqa },
@@ -1285,6 +1433,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         <div class="side-user">
           <div class="who"><span class="avatar" aria-hidden="true">${initial(S.user.name)}</span>
             <div><strong>${S.user.name}</strong><span>${S.user.role}</span></div></div>
+          ${installCtl('btn sm install-side', 'تثبيت التطبيق')}
           <div class="links">
             <button class="btn ghost sm" data-act="password">${icon('lock')}كلمة المرور</button>
             <button class="btn ghost sm" data-act="logout">${icon('logout')}خروج</button>
@@ -1293,6 +1442,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       </aside>
       <header class="topbar">
         ${brandMark(34)}<div class="brand-name">${S.settings.orgName}</div>
+        ${installCtl('btn sm install-top', 'تثبيت')}
         <button class="avatar" data-act="account" aria-label="حسابي">${initial(S.user.name)}</button>
       </header>
       <main class="main" id="main" tabindex="-1"></main>
@@ -1431,37 +1581,65 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   async function pageHome(main, p, seq) {
     const d = await load('dashboard');
     if (stale(seq)) return;
+    // التنافس: آخر تقرير بيجي مع الرئيسية، والسنة بطلب لحالها
+    const comp = d.competition && S.compPeriod === 'year' ? await load('competition', { period: 'year' }).catch(() => d.competition) : d.competition;
+    if (stale(seq)) return;
     main.innerHTML = html`
       <div class="page-head"><div><h1>أهلاً ${S.user.name}</h1><p class="sub">${dWeek.format(toDate(S.today))}</p></div></div>
       ${appHint()}
-      ${d.teaching ? homeTeaching(d.teaching) : ''}
-      ${d.finance ? homeFinance(d.finance, !d.teaching) : ''}`;
+      ${d.teaching ? homeTeaching(d.teaching, d.activities, d.courses, comp) : ''}
+      ${d.finance ? homeFinance(d.finance, !d.teaching) : ''}
+      ${d.teaching ? '' : homeActivities(d.activities)}
+      ${d.exams ? homeExams(d.exams) : ''}`;
     prefetchOffline();
   }
 
   // تنبيه بالرئيسية: من رابط جوجل بنوجّه للتطبيق، ومن التطبيق بالمتصفح بنشرح التثبيت
   function appHint() {
-    if (store.get('qc_app_hint') || standalone()) return '';
-    if (APP_URL && !API_URL) {
-      return html`<div class="notice app-hint"><div><strong>النظام يعمل دون إنترنت كتطبيق</strong>
-        <p>رابط Google يحتاج إلى إنترنت ليُفتح. افتح النظام من رابط التطبيق وسجّل الدخول مرة واحدة، ثم ثبّته على جهازك ليُفتح ويعمل دون إنترنت.</p></div>
-        <div class="ph-actions"><a class="btn sm" href="${APP_URL}" target="_blank" rel="noopener">فتح التطبيق</a><button class="btn sm ghost" data-act="app-hint-hide">إخفاء</button></div></div>`;
-    }
-    if (API_URL) {
-      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-      return html`<div class="notice app-hint"><div><strong>ثبّت التطبيق على جهازك</strong>
-        <p>${installPrompt ? 'يُضاف النظام إلى الشاشة الرئيسية كتطبيق، ويُفتح دون إنترنت.'
-          : ios ? 'من متصفح Safari اضغط زر المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية».'
-          : 'من قائمة المتصفح ⋮ اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».'}</p></div>
-        <div class="ph-actions">${installPrompt ? html`<button class="btn sm" data-act="app-install">تثبيت التطبيق</button>` : ''}<button class="btn sm ghost" data-act="app-hint-hide">إخفاء</button></div></div>`;
-    }
-    return '';
+    if (!canInstall()) return '';
+    return html`<div class="notice app-hint"><div><strong>ثبّت التطبيق على جهازك</strong>
+      <p>${API_URL ? 'يُضاف النظام إلى الشاشة الرئيسية كتطبيق، ويُفتح ويعمل دون إنترنت.'
+        : 'رابط Google يحتاج إلى إنترنت ليُفتح. افتح التطبيق وسجّل الدخول مرة واحدة، ثم ثبّته ليُفتح ويعمل دون إنترنت.'}</p></div>
+      <div class="ph-actions">${installCtl('btn sm', API_URL ? 'تثبيت التطبيق' : 'فتح التطبيق للتثبيت')}</div></div>`;
   }
 
-  function homeTeaching(t) {
+  // إذا المتصفح ما بيعرض التثبيت المباشر (آيفون مثلاً) بنشرح الخطوات
+  function installHelp() {
+    const ua = navigator.userAgent;
+    const ios = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+    const android = /android/i.test(ua);
+    // متصفح داخل تطبيق تاني (فيسبوك، إنستغرام، تيليغرام…) ما بيقدر يثبّت
+    const inApp = /FBAN|FBAV|FB_IAB|Instagram|Messenger|Line\/|Telegram|Snapchat|MicroMessenger|; wv\)/i.test(ua);
+    openModal({
+      title: 'تثبيت التطبيق',
+      cls: 'narrow',
+      body: html`
+        ${inApp ? html`<p class="notice">الرابط مفتوح داخل تطبيق آخر، ولا يمكن التثبيت منه. اضغط ⋮ أو ••• أعلى الشاشة واختر «فتح في المتصفح» (Chrome أو Safari)، ثم اضغط «تثبيت» من هناك.</p>` : ''}
+        ${ios ? html`<ol class="steps">
+            <li>افتح هذا الرابط في متصفح <strong>Safari</strong>.</li>
+            <li>اضغط زر المشاركة ⬆️ أسفل الشاشة.</li>
+            <li>اختر «إضافة إلى الشاشة الرئيسية»، ثم «إضافة».</li></ol>`
+          : android ? html`<ol class="steps">
+            <li>اضغط قائمة المتصفح ⋮ أعلى الشاشة.</li>
+            <li>اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».</li>
+            <li>إذا ظهر «إضافة إلى الشاشة الرئيسية» بدل «تثبيت التطبيق» فاختره، فهو يعمل بالطريقة نفسها.</li>
+            <li>في متصفح Samsung Internet: القائمة ☰ ← «إضافة صفحة إلى» ← «الشاشة الرئيسية».</li></ol>`
+          : html`<ol class="steps">
+            <li>اضغط أيقونة التثبيت في شريط العنوان أعلى المتصفح.</li>
+            <li>أو من قائمة المتصفح ⋮ اختر «تثبيت» أو «حفظ ومشاركة ← تثبيت الصفحة كتطبيق».</li></ol>`}
+        <p class="hint">بعد التثبيت يُفتح النظام من أيقونته ويعمل دون إنترنت. وإذا حُذف التطبيق، افتح الرابط وثبّته من جديد.</p>
+        <p class="hint">رابط التطبيق: <span class="ltr">${location.href.split('#')[0]}</span></p>`,
+    });
+  }
+
+  function homeTeaching(t, acts, courses, comp) {
     const last = t.trend[t.trend.length - 1];
     return html`
+      ${pendingExamsBox()}
       ${periodCard(t.period, t.halaqat)}
+      ${homeCompetition(comp)}
+      ${homeActivities(acts)}
+      ${homeCourses(courses)}
       <div class="stats section">
         ${stat(is(ROLE.TEACHER) ? 'طلابي' : isAmir() ? 'طلاب ' + stageName(myStage()) : 'الطلاب الفعّالون', fmtN(t.students), (t.halaqatCount === 1 ? 'في حلقة واحدة' : t.halaqatCount === 2 ? 'في حلقتين' : `في ${fmtN(t.halaqatCount)} حلقات`))}
         ${stat('مجموع الأجزاء المحفوظة', fmtN(t.juzTotal), 'حسب آخر تقرير لكل طالب')}
@@ -1495,6 +1673,618 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       </section>`;
   }
 
+  /* ═════════ الأنشطة والفعاليات ═════════ */
+
+  const shiftYM = (ym, n) => { const d = toDate(ym + '-01'); d.setMonth(d.getMonth() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+  const actCount = n => (n === 1 ? 'نشاط واحد' : n === 2 ? 'نشاطان' : `${fmtN(n)} ${n <= 10 ? 'أنشطة' : 'نشاطاً'}`);
+  const ACT_KIND = { 'مخطّط': 'green', 'منفّذ': 'good', 'مؤجّل': 'warn', 'ملغى': 'bad' };
+
+  // حالة النشاط: المخطّط بيبيّن قديش ضايل عليه
+  function actChip(a) {
+    if (a.status !== 'مخطّط') return chip(a.status, ACT_KIND[a.status]);
+    const end = a.endDate || a.date;
+    if (S.today >= a.date && S.today <= end) return chip(a.endDate ? 'جارٍ الآن' : 'اليوم', 'gold');
+    if (S.today > end) return chip('انتهى موعده', '');
+    const days = Math.round((toDate(a.date) - toDate(S.today)) / 864e5);
+    return chip(days === 1 ? 'غداً' : `بعد ${fmtN(days)} ${days <= 10 ? 'أيام' : 'يوماً'}`, 'green');
+  }
+
+  // لمين النشاط: المركز كله، أو مرحلة، أو حلقة
+  const audChip = a => a.audience === 'مرحلة' ? chip(a.audienceName, 'green')
+    : a.audience === 'حلقة' ? chip(a.audienceName, 'neutral') : chip('المركز كله', 'gold');
+  const audMatch = (a, f) => !f || (f === 'الجميع' ? a.audience !== 'مرحلة' && a.audience !== 'حلقة' : f === a.audience + ':' + a.audienceRef);
+
+  function actRow(a, admin) {
+    const d = toDate(a.date);
+    const days = a.endDate ? `${d.getDate()}–${toDate(a.endDate).getDate()}` : String(d.getDate());
+    const when = a.endDate ? `من ${fDate(a.date)} إلى ${fDate(a.endDate)}` : `${WEEKDAYS[d.getDay()]} ${fDate(a.date)}`;
+    return html`<div class="act ${a.status === 'ملغى' ? 'cancelled' : ''}">
+      <div class="act-date"><b>${iso(days)}</b><span>${dMonthShort.format(d)}</span></div>
+      <div class="act-main">
+        <div class="act-title"><strong>${a.title}</strong>${audChip(a)}${a.kind ? chip(a.kind, '') : ''}</div>
+        <div class="act-meta">${[when, isoTimes(a.time), a.place].filter(Boolean).join('، ')}</div>
+        ${a.description ? html`<p class="act-desc">${a.description}</p>` : ''}
+        ${a.status === 'منفّذ' && a.participants !== '' ? html`<div class="act-meta">عدد المشاركين: ${fmtN(a.participants)}</div>` : ''}
+      </div>
+      <div class="act-side">${actChip(a)}
+        ${admin ? html`<div class="act-btns"><button class="icon-btn" data-act="activity-edit" data-id="${a.id}" aria-label="تعديل النشاط">${icon('edit')}</button>
+          <button class="icon-btn danger" data-act="activity-del" data-id="${a.id}" aria-label="حذف النشاط">${icon('trash')}</button></div>` : ''}</div>
+    </div>`;
+  }
+
+  // أنشطة الشهر الحالي بالرئيسية
+  function homeActivities(list) {
+    if (!list) return '';
+    const m = S.today.slice(0, 7);
+    return html`<section class="section panel">
+      <div class="section-head"><h2>أنشطة وفعاليات ${fMonth(m)}</h2>
+        <div class="ph-actions">${is(ROLE.ADMIN) ? html`<button class="btn sm secondary" data-act="activity-new" data-month="${m}">${icon('plus')}إضافة</button>` : ''}
+          <button class="btn sm ghost" data-go="activities">كل الأنشطة</button></div></div>
+      ${list.length ? html`<div class="act-list">${list.slice(0, 6).map(a => actRow(a, false))}</div>
+        ${list.length > 6 ? html`<p class="sub" style="margin-top:8px">و${actCount(list.length - 6)} أخرى في صفحة الأنشطة.</p>` : ''}`
+        : html`<p class="muted" style="margin-top:8px">لا توجد أنشطة مسجّلة لهذا الشهر.</p>`}
+    </section>`;
+  }
+
+  async function pageActivities(main, p, seq) {
+    const month = p.month || S.today.slice(0, 7);
+    const list = await load('activities.list', { month });
+    if (stale(seq)) return;
+    S.activitiesCache = list;
+    const admin = is(ROLE.ADMIN);
+    const aud = p.aud || '';
+    const shown = list.filter(a => audMatch(a, aud));
+    const pg = paged('activities', shown);
+    // الفئات اللي إلها أنشطة هالشهر (ومعها اللي مختارة)
+    const auds = [...new Map(list.filter(a => a.audience === 'مرحلة' || a.audience === 'حلقة')
+      .map(a => [a.audience + ':' + a.audienceRef, a.audienceName])).entries()];
+    main.innerHTML = html`
+      <div class="page-head">
+        <div><h1>الأنشطة والفعاليات</h1><p class="sub">${fMonth(month)}: ${list.length ? actCount(list.length) : 'لا توجد أنشطة'}</p></div>
+        ${admin ? html`<div class="ph-actions"><button class="btn" data-act="activity-new" data-month="${month}">${icon('plus')}إضافة نشاط</button></div>` : ''}
+      </div>
+      <div class="toolbar">
+        <button class="btn ghost sm" data-go="activities" data-params="${params({ month: shiftYM(month, -1) })}">الشهر السابق</button>
+        <label class="field"><span>الشهر</span><input type="month" value="${month}" data-change="act-month"></label>
+        <button class="btn ghost sm" data-go="activities" data-params="${params({ month: shiftYM(month, 1) })}">الشهر التالي</button>
+        ${list.length ? html`<label class="field"><span>الفئة</span><select data-change="act-aud" data-month="${month}">
+          <option value="">الكل</option>${option('الجميع', 'المركز كله', aud)}${auds.map(([k, n]) => option(k, n, aud))}</select></label>` : ''}
+      </div>
+      ${shown.length ? html`<div class="panel act-list">${pg.rows.map(a => actRow(a, admin))}</div>${pg.bar}`
+        : emptyBox(list.length ? 'لا توجد أنشطة لهذه الفئة في هذا الشهر.' : 'لا توجد أنشطة أو فعاليات في هذا الشهر.',
+          admin ? html`<button class="btn" data-act="activity-new" data-month="${month}">إضافة نشاط</button>` : '')}`;
+  }
+
+  function activityForm(a = {}) {
+    const AUD = [['الجميع', 'المركز كله'], ['مرحلة', 'مرحلة'], ['حلقة', 'حلقة']];
+    const form = openModal({
+      title: a.id ? 'تعديل النشاط' : 'إضافة نشاط أو فعالية',
+      submitLabel: a.id ? 'حفظ التعديلات' : 'إضافة النشاط',
+      body: html`
+        <label class="field"><span>العنوان</span><input name="title" required value="${a.title || ''}" placeholder="مثلاً: مسابقة الحفظ الشهرية"></label>
+        <div class="field"><span>النشاط لـ</span><div class="seg" role="radiogroup">${AUD.map(([v, l]) => html`
+          <label><input type="radio" name="audience" value="${v}" ${v === (a.audience || 'الجميع') ? raw('checked') : ''}><span>${l}</span></label>`)}</div></div>
+        <label class="field" id="audField"><span id="audLabel">المرحلة</span><select name="audienceRef"></select></label>
+        <div class="grid2">
+          <label class="field"><span>النوع</span><input name="kind" list="actKinds" value="${a.kind || ''}" placeholder="اختر أو اكتب">
+            <datalist id="actKinds">${S.lists.activityKinds.map(k => html`<option value="${k}">`)}</datalist></label>
+          <label class="field"><span>الحالة</span><select name="status">${options(S.lists.activityStatus, a.status || 'مخطّط')}</select></label>
+        </div>
+        <div class="grid2">
+          <label class="field"><span>التاريخ</span><input type="date" name="date" required value="${a.date || S.today}"></label>
+          <label class="field"><span>إلى تاريخ (لنشاط من عدة أيام)</span><input type="date" name="endDate" value="${a.endDate || ''}"></label>
+        </div>
+        <div class="grid2">
+          <label class="field"><span>الوقت</span><input name="time" value="${a.time || ''}" placeholder="مثلاً: بعد العصر"></label>
+          <label class="field"><span>المكان</span><input name="place" value="${a.place || ''}"></label>
+        </div>
+        <label class="field"><span>التفاصيل</span><textarea name="description" placeholder="البرنامج، والمطلوب من الطلاب، والجوائز…">${a.description || ''}</textarea></label>
+        <label class="field" data-done><span>عدد المشاركين</span><input name="participants" type="number" min="0" inputmode="numeric" value="${a.participants === '' || a.participants == null ? '' : a.participants}"></label>`,
+      onSubmit: async data => {
+        if (data.endDate && data.endDate < data.date) throw new Error('تاريخ الانتهاء قبل تاريخ البداية');
+        if (data.audience !== 'الجميع' && !data.audienceRef) throw new Error('اختر المرحلة أو الحلقة المستهدفة');
+        const id = a.id || tempId('a');
+        mutate('activities.save', Object.assign({}, data, a.id ? { id } : {}), { tempId: a.id ? '' : id, label: (a.id ? 'تعديل نشاط ' : 'إضافة نشاط ') + data.title });
+        localActivity(id, data);
+        toast(a.id ? 'حُفظ النشاط' : 'أُضيف النشاط');
+        refreshView();
+      },
+    });
+    form.dataset.activity = '1';
+    syncActivityForm(form, a.audienceRef);
+  }
+
+  function syncActivityForm(form, selected) {
+    const aud = form.audience.value, sel = form.audienceRef;
+    const cur = selected != null ? selected : sel.value;
+    $('#audField', form).hidden = aud === 'الجميع';
+    $('#audLabel', form).textContent = aud === 'حلقة' ? 'الحلقة' : 'المرحلة';
+    sel.innerHTML = aud === 'مرحلة' ? html`${S.lists.stages.map(s => option(s, 'المرحلة ال' + s + 'ة', cur))}`
+      : aud === 'حلقة' ? html`${S.halaqat.map(h => option(h.id, h.name, cur))}` : '';
+    $('[data-done]', form).hidden = form.status.value !== 'منفّذ';
+  }
+
+  // النشاط بيظهر فوراً بصفحة الأنشطة وبالرئيسية
+  function localActivity(id, data) {
+    const h = data.audience === 'حلقة' ? S.halaqat.find(x => same(x.id, data.audienceRef)) : null;
+    const n = String(data.participants == null ? '' : data.participants).trim();
+    const rec = {
+      id, title: String(data.title).trim(), kind: String(data.kind || '').trim() || 'نشاط تربوي', date: data.date,
+      endDate: data.endDate && data.endDate !== data.date ? data.endDate : '', time: String(data.time || '').trim(), place: String(data.place || '').trim(),
+      audience: data.audience || 'الجميع', audienceRef: data.audience === 'حلقة' ? idOf(data.audienceRef) : data.audience === 'مرحلة' ? data.audienceRef : '',
+      audienceName: data.audience === 'مرحلة' ? 'المرحلة ال' + data.audienceRef + 'ة' : h ? h.name : 'المركز كله',
+      description: String(data.description || '').trim(), status: data.status || 'مخطّط', participants: n === '' ? '' : Number(n),
+    };
+    const fits = m => rec.date.slice(0, 7) <= m && (rec.endDate || rec.date).slice(0, 7) >= m;
+    const place = (list, m) => {
+      const i = list.findIndex(x => same(x.id, id));
+      if (i >= 0) list.splice(i, 1);
+      if (fits(m)) { list.push(rec); list.sort((x, y) => (x.date < y.date ? -1 : x.date > y.date ? 1 : 0)); }
+    };
+    patchReads('activities.list', (list, key) => place(list, (key.match(/month=(\d{4}-\d{2})/) || [])[1] || S.today.slice(0, 7)));
+    patchReads('dashboard', d => { if (d.activities) place(d.activities, S.today.slice(0, 7)); });
+    const m = rec.date.slice(0, 7);
+    if (!readOf('activities.list', { month: m })) putRead(keyOf('activities.list', { month: m }), [rec]);
+    commitLocal();
+  }
+
+  /* ═════════ الاختبارات ═════════ */
+  // داخلية بمعايير المدير (التنبيه والخطأ والأحكام)، وخارجية بجهة ومختبر وعلامة يعتمدها أمير المرحلة
+
+  const examCount = n => (n === 1 ? 'اختبار واحد' : n === 2 ? 'اختباران' : `${fmtN(n)} ${n <= 10 ? 'اختبارات' : 'اختباراً'}`);
+  const examScope = e => (e.scope === 'سلسلة' ? `سلسلة الأجزاء ${iso(e.juzFrom + '–' + e.juzTo)}` : `الجزء ${e.juzFrom}`);
+  const examMarkText = e => (e.kind === 'داخلي' && e.total !== '' ? `${fmtN(e.mark)} من ${fmtN(e.total)}` : fmtN(e.mark));
+  const examDetails = e => (e.kind === 'داخلي'
+    ? [`${fmtN(e.hints)} تنبيه`, `${fmtN(e.errors)} خطأ`, e.ahkamMax ? `الأحكام ${fmtN(e.ahkam)} من ${fmtN(e.ahkamMax)}` : '', 'المختبر ' + e.examiner].filter(Boolean).join('، ')
+    : `${e.body}، المختبر ${e.examiner}`);
+  const EXAM_KIND_CHIP = { 'معتمد': 'good', 'بانتظار الاعتماد': 'warn', 'مرفوض': 'bad' };
+  const examStatus = e => (e.kind === 'داخلي' ? '' : chip(e.status, EXAM_KIND_CHIP[e.status]));
+  const criteria = () => {
+    const n = (v, d) => { const x = Number(v); return String(v == null ? '' : v).trim() !== '' && x >= 0 ? x : d; };
+    return { total: n(S.settings.examTotal, 100), hint: n(S.settings.examHint, 1), error: n(S.settings.examError, 2), ahkam: n(S.settings.examAhkam, 0) };
+  };
+  const calcMark = (c, hints, errors, ahkam) => Math.round((Math.max(0, c.total - c.ahkam - hints * c.hint - errors * c.error) + (c.ahkam ? Math.min(c.ahkam, Math.max(0, ahkam || 0)) : 0)) * 10) / 10;
+  const stageOfStudent = id => { const s = S.students.find(x => same(x.id, id)); if (!s) return ''; if (s.stage) return s.stage; const h = S.halaqat.find(x => same(x.id, s.halaqaId)); return (h && h.stage) || ''; };
+  const canReviewExam = e => e.status === 'بانتظار الاعتماد' && (is(ROLE.ADMIN) || (isAmir() && stageOfStudent(e.studentId) === myStage()));
+  const canEditExam = e => is(ROLE.ADMIN) || (same(e.byUserId, S.user.id) && (is(ROLE.EXAMINER) || e.status !== 'معتمد'));
+  const canInternal = () => is(ROLE.ADMIN, ROLE.EXAMINER);
+  const canExternal = () => is(ROLE.ADMIN, ROLE.EXAMINER) || isAmir() || S.halaqat.some(teaches);
+
+  function examActions(e) {
+    return html`${canReviewExam(e) ? html`<button class="btn sm" data-act="exam-approve" data-id="${e.id}">اعتماد</button>
+      <button class="btn sm ghost danger-text" data-act="exam-reject" data-id="${e.id}">رفض</button>` : ''}
+      ${canEditExam(e) ? html`<button class="icon-btn" data-act="exam-edit" data-id="${e.id}" aria-label="تعديل الاختبار">${icon('edit')}</button>
+      <button class="icon-btn danger" data-act="exam-del" data-id="${e.id}" aria-label="حذف الاختبار">${icon('trash')}</button>` : ''}`;
+  }
+
+  // compact: بدون عمود الطالب (بملف الطالب)، withStudent: مع الطالب (تقرير الحلقة وصفحة الاختبارات)
+  function examsTable(list, withStudent, key) {
+    const rows = key ? paged(key, list).rows : list;
+    return html`<div class="table-wrap"><table>
+      <thead><tr><th class="idx">#</th><th>التاريخ</th>${withStudent ? html`<th>الطالب</th>` : ''}<th>النوع</th><th>الجزء أو السلسلة</th><th class="num">العلامة</th><th>التفاصيل</th><th></th></tr></thead>
+      <tbody>${rows.map((e, i) => html`<tr>
+        <td class="idx">${key ? rowNo(key, i) : i + 1}</td><td>${fShort(e.date)}</td>
+        ${withStudent ? html`<td><strong>${e.studentName}</strong>${e.halaqaName ? html`<small class="cell-sub">${e.halaqaName}</small>` : ''}</td>` : ''}
+        <td>${chip(e.kind, e.kind === 'داخلي' ? 'green' : '')}</td><td>${examScope(e)}</td>
+        <td class="num"><strong>${examMarkText(e)}</strong></td>
+        <td class="wrap">${examDetails(e)}${e.reviewNote ? html`<small class="cell-sub">ملاحظة الاعتماد: ${e.reviewNote}</small>` : ''}</td>
+        <td class="actions">${examStatus(e)}${examActions(e)}</td></tr>`)}</tbody>
+    </table></div>${key ? paged(key, list).bar : ''}`;
+  }
+
+  // بملف الطالب
+  function examsBox(list, s) {
+    return html`<section class="panel section">
+      <div class="section-head"><h2>الاختبارات</h2><p>${list.length ? examCount(list.length) : ''}</p></div>
+      ${list.length ? html`<div class="list" style="margin-top:8px">${list.map(e => html`
+        <div class="row"><span class="row-main"><span class="row-title">${examScope(e)} ${chip(e.kind, e.kind === 'داخلي' ? 'green' : '')} ${examStatus(e)}</span>
+          <span class="row-meta"> ${fDate(e.date)}، ${examDetails(e)}</span></span>${chip(examMarkText(e), 'gold')}</div>`)}</div>`
+        : html`<p class="muted" style="margin-top:8px">لا توجد اختبارات بعد.</p>`}
+      ${canInternal() || canExternal() ? html`<p style="margin-top:12px">
+        ${canInternal() ? html`<button class="btn secondary sm" data-act="exam-new" data-kind="داخلي" data-student="${s.id}">${icon('plus')}اختبار داخلي</button>` : ''}
+        ${canExternal() ? html`<button class="btn ghost sm" data-act="exam-new" data-kind="خارجي" data-student="${s.id}">${icon('plus')}اختبار خارجي</button>` : ''}</p>` : ''}
+    </section>`;
+  }
+
+  // بالرئيسية: اختبارات بانتظار اعتماد الأمير أو المدير
+  function pendingExamsBox() {
+    const list = ((readOf('dashboard', {}) || {}).pendingExams || []).filter(canReviewExam);
+    if (!list.length) return '';
+    return html`<section class="panel section pending-exams">
+      <div class="section-head"><h2>اختبارات بانتظار اعتمادك</h2><p>${examCount(list.length)}</p></div>
+      <div class="list">${list.map(e => html`<div class="row">
+        <span class="row-main"><span class="row-title">${e.studentName}، ${examScope(e)}</span>
+          <span class="row-meta"> ${e.halaqaName}، ${examDetails(e)}، أدخله ${e.byUser}</span></span>
+        ${chip(fmtN(e.mark), 'gold')}
+        <button class="btn sm" data-act="exam-approve" data-id="${e.id}">اعتماد</button>
+        <button class="btn sm ghost danger-text" data-act="exam-reject" data-id="${e.id}">رفض</button></div>`)}</div>
+    </section>`;
+  }
+
+  // رئيسية المختبر: آخر الاختبارات
+  function homeExams(list) {
+    return html`<section class="section panel">
+      <div class="section-head"><h2>آخر الاختبارات</h2>
+        <div class="ph-actions">${canInternal() ? html`<button class="btn sm" data-act="exam-new" data-kind="داخلي">${icon('plus')}اختبار داخلي</button>` : ''}
+          <button class="btn sm ghost" data-go="exams">كل الاختبارات</button></div></div>
+      ${list.length ? examsTable(list, true) : html`<p class="muted" style="margin-top:8px">لم تُسجَّل اختبارات بعد.</p>`}
+    </section>`;
+  }
+
+  async function pageExams(main, p, seq) {
+    const list = await load('exams.list');
+    if (stale(seq)) return;
+    const f = { kind: p.kind || '', status: p.status || '', q: p.q || '' };
+    const q = normAr(f.q);
+    const shown = list.filter(e => (!f.kind || e.kind === f.kind) && (!f.status || e.status === f.status) && (!q || normAr(e.studentName + ' ' + e.halaqaName).includes(q)));
+    const pending = list.filter(canReviewExam).length;
+    const c = criteria();
+    main.innerHTML = html`
+      <div class="page-head">
+        <div><h1>الاختبارات</h1><p class="sub">${list.length ? examCount(list.length) : 'لا توجد اختبارات بعد'}${pending ? `، منها ${examCount(pending)} بانتظار اعتمادك` : ''}</p></div>
+        <div class="ph-actions">
+          ${is(ROLE.ADMIN) ? html`<button class="btn ghost" data-act="exam-criteria">${icon('gear')}معايير الاختبار</button>` : ''}
+          ${canExternal() ? html`<button class="btn secondary" data-act="exam-new" data-kind="خارجي">${icon('plus')}اختبار خارجي</button>` : ''}
+          ${canInternal() ? html`<button class="btn" data-act="exam-new" data-kind="داخلي">${icon('plus')}اختبار داخلي</button>` : ''}
+        </div>
+      </div>
+      <p class="hint" style="margin-bottom:12px">معايير الاختبار الداخلي: العلامة الكاملة ${fmtN(c.total)}، خصم التنبيه ${fmtN(c.hint)}، خصم الخطأ ${fmtN(c.error)}${c.ahkam ? `، علامة الأحكام ${fmtN(c.ahkam)}` : '، دون علامة للأحكام'}.</p>
+      <div class="toolbar">
+        <label class="field grow"><span>بحث</span><input type="search" id="exQ" placeholder="اسم الطالب أو الحلقة" value="${f.q}" data-input="ex-filter"></label>
+        <label class="field"><span>النوع</span><select id="exK" data-change="ex-filter"><option value="">الكل</option>${options(['داخلي', 'خارجي'], f.kind)}</select></label>
+        <label class="field"><span>الحالة</span><select id="exS" data-change="ex-filter"><option value="">الكل</option>${options(['معتمد', 'بانتظار الاعتماد', 'مرفوض'], f.status)}</select></label>
+      </div>
+      ${shown.length ? examsTable(shown, true, 'exams') : emptyBox(list.length ? 'لا توجد اختبارات مطابقة.' : 'لا توجد اختبارات بعد.')}`;
+    if (f.q) { const el = $('#exQ'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
+  }
+
+  function criteriaForm() {
+    const c = criteria();
+    openModal({
+      title: 'معايير الاختبار الداخلي',
+      cls: 'narrow',
+      body: html`
+        <p class="hint">العلامة = (العلامة الكاملة − علامة الأحكام) − عدد التنبيهات × خصم التنبيه − عدد الأخطاء × خصم الخطأ + علامة الأحكام التي يضعها المختبر.</p>
+        <label class="field"><span>العلامة الكاملة</span><input name="total" type="number" min="1" step="0.5" required value="${c.total}"></label>
+        <div class="grid2">
+          <label class="field"><span>خصم التنبيه الواحد</span><input name="hint" type="number" min="0" step="0.25" required value="${c.hint}"></label>
+          <label class="field"><span>خصم الخطأ الواحد</span><input name="error" type="number" min="0" step="0.25" required value="${c.error}"></label>
+        </div>
+        <label class="field"><span>علامة الأحكام (اتركها 0 إذا لا تريدها)</span><input name="ahkam" type="number" min="0" step="0.5" value="${c.ahkam}"></label>
+        <p class="hint">تُطبَّق المعايير على الاختبارات الجديدة فقط، وتبقى علامات الاختبارات السابقة كما هي.</p>`,
+      onSubmit: async data => {
+        const n = v => Number(toLatin(v));
+        if (!(n(data.total) > 0)) throw new Error('العلامة الكاملة يجب أن تكون أكبر من صفر');
+        if (n(data.ahkam || 0) >= n(data.total)) throw new Error('علامة الأحكام يجب أن تكون أقل من العلامة الكاملة');
+        mutate('exams.criteria', data, { label: 'معايير الاختبار' });
+        Object.assign(S.settings, { examTotal: String(n(data.total)), examHint: String(n(data.hint)), examError: String(n(data.error)), examAhkam: String(n(data.ahkam || 0)) });
+        commitLocal();
+        toast('حُفظت معايير الاختبار');
+        refreshView();
+      },
+    });
+  }
+
+  // نموذج الاختبار: المحفّظ ثم الطالب ثم الجزء أو السلسلة
+  function examForm(kind, e = {}) {
+    const c = criteria();
+    const internal = kind === 'داخلي';
+    const pickTeacher = is(ROLE.ADMIN, ROLE.EXAMINER);
+    const student = e.studentId ? S.students.find(x => same(x.id, e.studentId)) : null;
+    const hal = student ? S.halaqat.find(h => same(h.id, student.halaqaId)) : null;
+    const teacherId = e.teacherId || (hal && hal.teacherId) || '';
+    const juzOpts = sel => html`${Array.from({ length: 30 }, (_, i) => option(i + 1, `الجزء ${i + 1}`, sel))}`;
+    const form = openModal({
+      title: e.id ? 'تعديل الاختبار' : internal ? 'اختبار داخلي' : 'اختبار خارجي',
+      submitLabel: e.id ? 'حفظ التعديلات' : 'حفظ الاختبار',
+      body: html`
+        ${pickTeacher ? html`<label class="field"><span>المحفّظ</span><select name="teacherPick"><option value="">كل المحفّظين</option>${S.teachers.map(t => option(t.id, t.name, teacherId))}</select></label>` : ''}
+        <label class="field"><span>الطالب</span><select name="studentId" required data-selected="${e.studentId || ''}"></select></label>
+        <div class="field"><span>الاختبار في</span><div class="seg" role="radiogroup">
+          <label><input type="radio" name="scope" value="جزء" ${e.scope !== 'سلسلة' ? raw('checked') : ''}><span>جزء</span></label>
+          <label><input type="radio" name="scope" value="سلسلة" ${e.scope === 'سلسلة' ? raw('checked') : ''}><span>سلسلة أجزاء</span></label></div></div>
+        <div class="grid2">
+          <label class="field"><span id="juzLabel">الجزء</span><select name="juzFrom">${juzOpts(e.juzFrom || 30)}</select></label>
+          <label class="field" data-series><span>إلى الجزء</span><select name="juzTo">${juzOpts(e.juzTo || 26)}</select></label>
+        </div>
+        <label class="field"><span>تاريخ الاختبار</span><input type="date" name="date" value="${e.date || S.today}"></label>
+        ${internal ? html`
+          <div class="grid2">
+            <label class="field"><span>عدد التنبيهات</span><input name="hints" type="number" min="0" inputmode="numeric" value="${e.hints === '' || e.hints == null ? 0 : e.hints}"></label>
+            <label class="field"><span>عدد الأخطاء</span><input name="errors" type="number" min="0" inputmode="numeric" value="${e.errors === '' || e.errors == null ? 0 : e.errors}"></label>
+          </div>
+          ${c.ahkam ? html`<label class="field"><span>علامة الأحكام (من ${fmtN(c.ahkam)})</span><input name="ahkam" type="number" min="0" max="${c.ahkam}" step="0.5" value="${e.ahkam === '' || e.ahkam == null ? c.ahkam : e.ahkam}"></label>` : ''}
+          <div class="exam-mark" id="examMark"></div>` : html`
+          <div class="grid2">
+            <label class="field"><span>الجهة</span><input name="body" required value="${e.body || ''}" placeholder="مثلاً: دار القرآن الكريم"></label>
+            <label class="field"><span>المختبر</span><input name="examiner" required value="${e.examiner || ''}"></label>
+          </div>
+          <label class="field"><span>العلامة</span><input name="mark" type="number" min="0" step="0.5" required value="${e.mark === '' || e.mark == null ? '' : e.mark}"></label>
+          ${!is(ROLE.ADMIN, ROLE.EXAMINER) && !(isAmir() && student && stageOfStudent(student.id) === myStage()) ? html`<p class="hint">يُرسل الاختبار لاعتماد أمير المرحلة، ويظهر في ملف الطالب بعد اعتماده.</p>` : ''}`}
+        <label class="field"><span>ملاحظات</span><input name="notes" value="${e.notes || ''}"></label>`,
+      onSubmit: async data => {
+        if (!data.studentId) throw new Error('اختر الطالب');
+        const payload = { kind, studentId: idOf(data.studentId), scope: data.scope, juzFrom: data.juzFrom, juzTo: data.scope === 'سلسلة' ? data.juzTo : '', date: data.date, notes: data.notes };
+        if (payload.scope === 'سلسلة' && payload.juzFrom === payload.juzTo) throw new Error('السلسلة يجب أن تتكوّن من أكثر من جزء');
+        if (internal) {
+          Object.assign(payload, { hints: data.hints || 0, errors: data.errors || 0, ahkam: c.ahkam ? data.ahkam || 0 : '' });
+          if (c.ahkam && !(Number(payload.ahkam) >= 0 && Number(payload.ahkam) <= c.ahkam)) throw new Error(`علامة الأحكام من 0 إلى ${c.ahkam}`);
+        } else {
+          if (!String(data.body).trim()) throw new Error('أدخل الجهة');
+          if (!String(data.examiner).trim()) throw new Error('أدخل اسم المختبر');
+          if (String(data.mark).trim() === '') throw new Error('أدخل العلامة');
+          Object.assign(payload, { body: data.body, examiner: data.examiner, mark: data.mark });
+        }
+        const id = e.id || tempId('x');
+        const st = S.students.find(x => same(x.id, payload.studentId)) || {};
+        mutate('exams.save', Object.assign({}, payload, e.id ? { id } : {}), { tempId: e.id ? '' : id, label: `اختبار ${st.name || ''}` });
+        localExam(id, payload, e, c);
+        toast(internal || is(ROLE.ADMIN, ROLE.EXAMINER) ? 'حُفظ الاختبار' : 'حُفظ الاختبار وأُرسل للاعتماد');
+        refreshView();
+      },
+    });
+    form.dataset.exam = kind;
+    syncExamForm(form);
+  }
+
+  // الطلاب حسب المحفّظ، وخانة السلسلة، والعلامة وهو عم يكتب
+  function syncExamForm(form) {
+    const sel = form.studentId, cur = sel.value || sel.dataset.selected;
+    const tp = form.teacherPick ? form.teacherPick.value : '';
+    let pool;
+    if (is(ROLE.ADMIN, ROLE.EXAMINER)) pool = S.students.filter(s => !tp || S.halaqat.some(h => same(h.id, s.halaqaId) && same(h.teacherId, tp)));
+    else if (isAmir() && form.dataset.exam === 'خارجي') pool = S.students;
+    else pool = S.students.filter(s => S.halaqat.some(h => same(h.id, s.halaqaId) && teaches(h)));
+    pool = pool.filter(s => s.status === 'فعّال' || same(s.id, cur));
+    sel.innerHTML = html`<option value="">اختر الطالب</option>${pool.map(s => option(s.id, s.name + (s.halaqaId ? '، ' + halaqaName(s.halaqaId) : ''), cur))}`;
+    const series = (form.querySelector('input[name=scope]:checked') || {}).value === 'سلسلة';
+    $('[data-series]', form).hidden = !series;
+    $('#juzLabel', form).textContent = series ? 'من الجزء' : 'الجزء';
+    const box = $('#examMark', form);
+    if (box) {
+      const c = criteria();
+      const v = n => Math.max(0, Number(form[n] ? form[n].value : 0) || 0);
+      box.innerHTML = html`العلامة: <strong>${fmtN(calcMark(c, v('hints'), v('errors'), v('ahkam')))}</strong> من ${fmtN(c.total)}`;
+    }
+  }
+
+  // الاختبار بيظهر فوراً بالقوائم وملف الطالب وتقرير الحلقة
+  function localExam(id, p, old, c) {
+    const st = S.students.find(x => same(x.id, p.studentId)) || {};
+    const h = S.halaqat.find(x => same(x.id, st.halaqaId)) || {};
+    const t = S.teachers.find(x => same(x.id, h.teacherId)) || {};
+    const internal = p.kind === 'داخلي';
+    const lo = Math.min(+p.juzFrom, +(p.juzTo || p.juzFrom)), hi = Math.max(+p.juzFrom, +(p.juzTo || p.juzFrom));
+    const approvedNow = internal || is(ROLE.ADMIN, ROLE.EXAMINER) || (isAmir() && stageOfStudent(st.id) === myStage());
+    const rec = Object.assign({}, old, {
+      id, kind: p.kind, studentId: st.id, studentName: st.name || '', halaqaId: h.id || '', halaqaName: h.name || '',
+      teacherId: t.id || '', teacherName: t.name || '', scope: p.scope, juzFrom: p.scope === 'سلسلة' ? lo : +p.juzFrom, juzTo: p.scope === 'سلسلة' ? hi : '',
+      date: p.date || S.today, notes: String(p.notes || '').trim(), byUserId: old.byUserId || S.user.id, byUser: old.byUser || S.user.name,
+      status: approvedNow ? 'معتمد' : 'بانتظار الاعتماد',
+    });
+    if (internal) {
+      const hints = +p.hints || 0, errors = +p.errors || 0, ahkam = c.ahkam ? +p.ahkam || 0 : '';
+      Object.assign(rec, { hints, errors, ahkam, total: c.total, hintDeduct: c.hint, errorDeduct: c.error, ahkamMax: c.ahkam, mark: calcMark(c, hints, errors, ahkam), body: 'المركز', examiner: S.user.name });
+    } else {
+      Object.assign(rec, { hints: '', errors: '', ahkam: '', total: '', ahkamMax: '', mark: +p.mark, body: String(p.body).trim(), examiner: String(p.examiner).trim() });
+    }
+    putExamEverywhere(rec);
+    commitLocal();
+  }
+
+  function putExamEverywhere(rec, removed) {
+    const put = list => { const i = list.findIndex(x => same(x.id, rec.id)); if (i >= 0) list.splice(i, 1); if (!removed) list.unshift(rec); };
+    patchReads('exams.list', put);
+    if (!removed && !readOf('exams.list', {})) putRead(keyOf('exams.list', {}), [rec]);
+    patchReads('students.get', d => { if (d.exams && same(d.student.id, rec.studentId)) put(d.exams); });
+    patchReads('report.get', d => {
+      if (!d.exams) return;
+      const i = d.exams.findIndex(x => same(x.id, rec.id));
+      if (i >= 0) d.exams.splice(i, 1);
+      if (!removed && rec.status === 'معتمد' && rec.date.slice(0, 7) === d.month && d.entries.some(en => same(en.studentId, rec.studentId))) d.exams.push(rec);
+    });
+    patchReads('dashboard', d => {
+      if (d.pendingExams) { d.pendingExams = d.pendingExams.filter(x => !same(x.id, rec.id)); if (!removed && rec.status === 'بانتظار الاعتماد') d.pendingExams.push(rec); }
+      if (d.exams) put(d.exams);
+    });
+  }
+
+  const findExam = id => [].concat(readOf('exams.list', {}) || [], ((readOf('dashboard', {}) || {}).pendingExams) || [], ((readOf('dashboard', {}) || {}).exams) || [],
+    ...[...reads.keys()].filter(k => k.startsWith('students.get|') || k.startsWith('report.get|')).map(k => (reads.get(k).v.exams || []))).find(x => same(x.id, id));
+
+  function reviewExam(id, approve, note) {
+    const e = findExam(id);
+    if (!e) return;
+    mutate('exams.review', { id: idOf(id), approve, note: note || '' }, { label: (approve ? 'اعتماد' : 'رفض') + ' اختبار ' + e.studentName });
+    putExamEverywhere(Object.assign({}, e, { status: approve ? 'معتمد' : 'مرفوض', reviewedBy: S.user.name, reviewNote: note || '' }));
+    commitLocal();
+    toast(approve ? 'اعتُمد الاختبار' : 'رُفض الاختبار');
+    refreshView();
+  }
+
+  /* ═════════ التنافس بين الحلقات ═════════ */
+  // للمدير والأمراء: ترتيب الحلقات بالحفظ والحضور والأنشطة والدورات، والترتيب بالضغط على أي عمود
+
+  const COMP_COLS = [['ayat', 'الآيات المحفوظة'], ['avg', 'متوسط الطالب'], ['attendance', 'الحضور'], ['activities', 'الأنشطة'], ['courses', 'الدورات']];
+
+  function homeCompetition(c) {
+    if (!c) return '';
+    const sort = S.compSort || 'ayat';
+    const rows = c.rows.slice().sort((a, b) => (b[sort] || 0) - (a[sort] || 0) || b.ayat - a.ayat);
+    const max = Math.max(1, ...rows.map(r => r.ayat));
+    const medal = (r, i) => ((r[sort] || 0) > 0 && ['🥇', '🥈', '🥉'][i]) || fmtN(i + 1);
+    const label = c.period === 'year' ? `من بداية ${c.from.slice(0, 4)} حتى ${fMonth(c.to)}` : `تقرير ${fMonth(c.month)}`;
+    return html`<section class="section panel comp">
+      <div class="section-head">
+        <div><h2>التنافس بين الحلقات</h2><p class="sub">${isAmir() ? `حلقات ${stageName(myStage())}، ` : ''}${label}</p></div>
+        <div class="seg sm" role="radiogroup" aria-label="الفترة">
+          <label><input type="radio" name="compPeriod" value="month" data-change="comp-period" ${c.period !== 'year' ? raw('checked') : ''}><span>آخر تقرير</span></label>
+          <label><input type="radio" name="compPeriod" value="year" data-change="comp-period" ${c.period === 'year' ? raw('checked') : ''}><span>هذه السنة</span></label>
+        </div>
+      </div>
+      ${rows.length ? html`<div class="table-wrap"><table>
+        <thead><tr><th class="idx">الترتيب</th><th>الحلقة</th>${COMP_COLS.map(([k, l]) => html`<th class="num">
+          <button type="button" class="th-sort ${k === sort ? 'on' : ''}" data-act="comp-sort" data-key="${k}" aria-label="الترتيب حسب ${l}">${l}${k === sort ? ' ▾' : ''}</button></th>`)}</tr></thead>
+        <tbody>${rows.map((r, i) => html`<tr class="click" data-go="halaqa" data-params="${params({ id: r.id })}">
+          <td class="idx rank-cell">${medal(r, i)}</td>
+          <td><strong>${r.name}</strong>${r.teacherName ? html`<small class="cell-sub">${r.teacherName}، ${nStudents(r.students)}</small>` : ''}</td>
+          <td class="num"><div class="comp-bar"><i style="width:${(r.ayat / max) * 100}%"></i><span>${fmtN(r.ayat)}</span></div></td>
+          <td class="num">${fmtN(r.avg)}</td>
+          <td class="num">${r.attendance == null ? '—' : P(r.attendance)}</td>
+          <td class="num">${fmtN(r.activities)}</td>
+          <td class="num">${fmtN(r.courses)}</td></tr>`)}</tbody>
+      </table></div>
+      <p class="hint" style="margin-top:8px">متوسط الطالب = الآيات المحفوظة ÷ عدد طلاب الحلقة الفعّالين، والأنشطة والدورات هي المخصّصة للحلقة نفسها.</p>`
+        : html`<p class="muted" style="margin-top:8px">لا توجد حلقات فعّالة.</p>`}
+    </section>`;
+  }
+
+  /* ═════════ الدورات ═════════ */
+  // اسم الدورة نص حر، وبتكون لحلقة أو لمرحلة
+
+  const courseCount = n => (n === 1 ? 'دورة واحدة' : n === 2 ? 'دورتان' : `${fmtN(n)} ${n <= 10 ? 'دورات' : 'دورة'}`);
+  const canEditCourse = c => is(ROLE.ADMIN) || same(c.byUserId, S.user.id);
+  // لمين بيقدر المستخدم يضيف: المدير الكل، والأمير مرحلته وحلقاته، والمحفّظ حلقاته
+  const courseTargets = () => ({
+    stages: is(ROLE.ADMIN) ? S.lists.stages : isAmir() ? [myStage()] : [],
+    halaqat: is(ROLE.ADMIN) ? S.halaqat : S.halaqat.filter(teaches),
+  });
+  const canAddCourse = () => { const t = courseTargets(); return !!(t.stages.length || t.halaqat.length); };
+
+  function courseStatus(c) {
+    if (!c.startDate) return '';
+    if (S.today < c.startDate) return chip('قادمة', 'green');
+    if (c.endDate && S.today > c.endDate) return chip('منتهية', '');
+    return chip('جارية', 'gold');
+  }
+
+  function courseRow(c, home) {
+    const when = c.startDate && c.endDate ? `من ${fDate(c.startDate)} إلى ${fDate(c.endDate)}`
+      : c.startDate ? (S.today < c.startDate ? 'تبدأ ' : 'بدأت ') + fDate(c.startDate) : '';
+    return html`<div class="act">
+      <div class="act-main">
+        <div class="act-title"><strong>${c.title}</strong>${audChip(c)}${courseStatus(c)}</div>
+        ${when || c.trainer ? html`<div class="act-meta">${[when, c.trainer && 'الشيخ: ' + c.trainer].filter(Boolean).join('، ')}</div>` : ''}
+        ${c.details ? html`<p class="act-desc">${c.details}</p>` : ''}
+      </div>
+      ${canEditCourse(c) && !home ? html`<div class="act-side"><div class="act-btns">
+        <button class="icon-btn" data-act="course-edit" data-id="${c.id}" aria-label="تعديل الدورة">${icon('edit')}</button>
+        <button class="icon-btn danger" data-act="course-del" data-id="${c.id}" aria-label="حذف الدورة">${icon('trash')}</button></div></div>` : ''}
+    </div>`;
+  }
+
+  async function pageCourses(main, p, seq) {
+    const list = await load('courses.list');
+    if (stale(seq)) return;
+    const aud = p.aud || '';
+    const shown = list.filter(c => !aud || aud === c.audience + ':' + c.audienceRef);
+    const auds = [...new Map(list.map(c => [c.audience + ':' + c.audienceRef, c.audienceName])).entries()];
+    const pg = paged('courses', shown);
+    main.innerHTML = html`
+      <div class="page-head">
+        <div><h1>الدورات</h1><p class="sub">${list.length ? courseCount(list.length) : 'لا توجد دورات بعد'}</p></div>
+        ${canAddCourse() ? html`<div class="ph-actions"><button class="btn" data-act="course-new">${icon('plus')}إضافة دورة</button></div>` : ''}
+      </div>
+      ${auds.length > 1 ? html`<div class="toolbar"><label class="field"><span>الحلقة أو المرحلة</span><select data-change="course-aud">
+        <option value="">الكل</option>${auds.map(([k, n]) => option(k, n, aud))}</select></label></div>` : ''}
+      ${shown.length ? html`<div class="panel act-list">${pg.rows.map(c => courseRow(c))}</div>${pg.bar}`
+        : emptyBox(list.length ? 'لا توجد دورات لهذا الاختيار.' : 'لا توجد دورات بعد.', canAddCourse() ? html`<button class="btn" data-act="course-new">إضافة دورة</button>` : '')}`;
+  }
+
+  // دورات الحلقة ومرحلتها بصفحة الحلقة
+  function halaqaCourses(h) {
+    const list = (readOf('courses.list', {}) || []).filter(c => (c.audience === 'حلقة' && same(c.audienceRef, h.id)) || (c.audience === 'مرحلة' && h.stage && c.audienceRef === h.stage));
+    const can = is(ROLE.ADMIN) || teaches(h);
+    if (!list.length && !can) return '';
+    return html`<section class="section">
+      <div class="section-head"><h2>الدورات</h2>${can ? html`<button class="btn sm secondary" data-act="course-new" data-halaqa="${h.id}">${icon('plus')}إضافة دورة</button>` : ''}</div>
+      ${list.length ? html`<div class="panel act-list">${list.map(c => courseRow(c))}</div>` : html`<div class="list"><div class="empty small">لا توجد دورات لهذه الحلقة بعد.</div></div>`}
+    </section>`;
+  }
+
+  // الدورات الجارية والقادمة بالرئيسية
+  function homeCourses(list) {
+    if (!list) return '';
+    return html`<section class="section panel">
+      <div class="section-head"><h2>الدورات</h2>
+        <div class="ph-actions">${canAddCourse() ? html`<button class="btn sm secondary" data-act="course-new">${icon('plus')}إضافة</button>` : ''}
+          <button class="btn sm ghost" data-go="courses">كل الدورات</button></div></div>
+      ${list.length ? html`<div class="act-list">${list.slice(0, 5).map(c => courseRow(c, true))}</div>
+        ${list.length > 5 ? html`<p class="sub" style="margin-top:8px">و${courseCount(list.length - 5)} أخرى في صفحة الدورات.</p>` : ''}`
+        : html`<p class="muted" style="margin-top:8px">لا توجد دورات جارية أو قادمة.</p>`}
+    </section>`;
+  }
+
+  function courseForm(c = {}) {
+    const t = courseTargets();
+    const kinds = [t.halaqat.length ? 'حلقة' : '', t.stages.length ? 'مرحلة' : ''].filter(Boolean);
+    const cur = c.audience && kinds.includes(c.audience) ? c.audience : kinds[0];
+    const form = openModal({
+      title: c.id ? 'تعديل الدورة' : 'إضافة دورة',
+      submitLabel: c.id ? 'حفظ التعديلات' : 'إضافة الدورة',
+      body: html`
+        <label class="field"><span>اسم الدورة</span><input name="title" required value="${c.title || ''}" placeholder="مثلاً: دورة أحكام التجويد"></label>
+        ${kinds.length > 1 ? html`<div class="field"><span>الدورة لـ</span><div class="seg" role="radiogroup">${kinds.map(v => html`
+          <label><input type="radio" name="audience" value="${v}" ${v === cur ? raw('checked') : ''}><span>${v}</span></label>`)}</div></div>`
+          : html`<input type="hidden" name="audience" value="${cur}">`}
+        <label class="field"><span id="cAudLabel">الحلقة</span><select name="audienceRef"></select></label>
+        <div class="grid2">
+          <label class="field"><span>تاريخ البداية</span><input type="date" name="startDate" value="${c.startDate || ''}"></label>
+          <label class="field"><span>تاريخ النهاية</span><input type="date" name="endDate" value="${c.endDate || ''}"></label>
+        </div>
+        <div class="field"><span>الشيخ الذي يقدّم الدورة</span><div class="seg" role="radiogroup">
+          <label><input type="radio" name="trainerKind" value="in" ${c.trainerId || !c.trainer ? raw('checked') : ''}><span>محفّظ من المركز</span></label>
+          <label><input type="radio" name="trainerKind" value="out" ${!c.trainerId && c.trainer ? raw('checked') : ''}><span>شيخ من الخارج</span></label></div></div>
+        <label class="field" data-trainer="in"><span>المحفّظ</span><select name="trainerId"><option value="">—</option>${S.teachers.map(t => option(t.id, t.name, c.trainerId))}</select></label>
+        <label class="field" data-trainer="out"><span>اسم الشيخ</span><input name="trainer" value="${c.trainerId ? '' : c.trainer || ''}" placeholder="مثلاً: الشيخ محمد…"></label>
+        <label class="field"><span>التفاصيل</span><textarea name="details" placeholder="المحاور، والمواعيد، والمطلوب من المشاركين…">${c.details || ''}</textarea></label>`,
+      onSubmit: async data => {
+        if (data.startDate && data.endDate && data.endDate < data.startDate) throw new Error('تاريخ النهاية قبل تاريخ البداية');
+        if (!data.audienceRef) throw new Error('اختر الحلقة أو المرحلة');
+        if (data.trainerKind === 'in') data.trainer = ''; else data.trainerId = '';
+        delete data.trainerKind;
+        const id = c.id || tempId('c');
+        mutate('courses.save', Object.assign({}, data, c.id ? { id } : {}), { tempId: c.id ? '' : id, label: (c.id ? 'تعديل دورة ' : 'إضافة دورة ') + data.title });
+        localCourse(id, data, c);
+        toast(c.id ? 'حُفظت الدورة' : 'أُضيفت الدورة');
+        refreshView();
+      },
+    });
+    form.dataset.course = '1';
+    syncCourseForm(form, c.audienceRef);
+  }
+
+  function syncCourseForm(form, selected) {
+    const t = courseTargets();
+    const aud = (form.querySelector('input[name=audience]:checked') || form.querySelector('input[name=audience]')).value;
+    const sel = form.audienceRef, cur = selected != null ? selected : sel.value;
+    $('#cAudLabel', form).textContent = aud === 'مرحلة' ? 'المرحلة' : 'الحلقة';
+    sel.innerHTML = aud === 'مرحلة' ? html`${t.stages.map(s => option(s, 'المرحلة ال' + s + 'ة', cur))}` : html`${t.halaqat.map(h => option(h.id, h.name, cur))}`;
+    const kind = (form.querySelector('input[name=trainerKind]:checked') || {}).value || 'in';
+    $$('[data-trainer]', form).forEach(el => { el.hidden = el.dataset.trainer !== kind; });
+  }
+
+  // الدورة بتظهر فوراً بصفحة الدورات وصفحة الحلقة
+  function localCourse(id, data, old) {
+    const h = data.audience === 'حلقة' ? S.halaqat.find(x => same(x.id, data.audienceRef)) : null;
+    const tr = data.trainerId ? S.teachers.find(x => same(x.id, data.trainerId)) : null;
+    const rec = Object.assign({}, old, {
+      id, title: String(data.title).trim(), audience: data.audience, trainerId: tr ? tr.id : '',
+      audienceRef: data.audience === 'حلقة' ? idOf(data.audienceRef) : data.audienceRef,
+      audienceName: data.audience === 'مرحلة' ? 'المرحلة ال' + data.audienceRef + 'ة' : h ? h.name : '',
+      startDate: data.startDate || '', endDate: data.endDate || '', trainer: tr ? tr.name : String(data.trainer || '').trim(), details: String(data.details || '').trim(),
+      byUserId: old.byUserId || S.user.id, byUser: old.byUser || S.user.name,
+    });
+    patchReads('courses.list', list => upsert(list, rec));
+    if (!readOf('courses.list', {})) putRead(keyOf('courses.list', {}), [rec]);
+    patchReads('dashboard', d => {
+      if (!d.courses) return;
+      d.courses = d.courses.filter(x => !same(x.id, id));
+      if (!rec.endDate || rec.endDate >= S.today) d.courses.push(rec);
+    });
+    commitLocal();
+  }
+
   function periodText(pd) {
     if (!pd) return is(ROLE.ADMIN) ? 'لا توجد فترة إدخال للتقارير. افتح فترة ليتمكن المحفّظون من تعبئة تقرير الشهر.' : 'لا توجد فترة إدخال مفتوحة حالياً.';
     if (pd.status === 'مفتوحة') return `إدخال تقرير شهر ${fMonth(pd.month)} مفتوح حتى ${fDate(pd.endDate)}.`;
@@ -1510,7 +2300,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
 
   // حالة تسليم تقرير الحلقة
   const subChip = (h, open) => !h.submitted ? chip('لم يُسلَّم بعد', open ? 'warn' : '')
-    : h.pending ? chip('محفوظ على الجهاز، بانتظار الإرسال', 'gold') : chip(`✓ سُلّم ${relDay(String(h.submittedAt).slice(0, 10))}`, 'good');
+    : chip(`✓ سُلّم ${relDay(String(h.submittedAt).slice(0, 10))}`, 'good');
 
   function periodCard(pd, halaqat) {
     const open = pd && pd.status === 'مفتوحة';
@@ -1627,8 +2417,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const ro = !d.editable, pd = d.period;
     S.reportCache = d;
     let note;
-    if (d.submission && d.submission.pending) note = online ? 'حُفظ التقرير، وجارٍ إرساله إلى الشيت.' : 'حُفظ التقرير على هذا الجهاز، وسيُرسل إلى الشيت تلقائياً عند عودة الإنترنت.';
-    else if (d.submission) note = `سُلّم التقرير ${relDay(d.submission.at.slice(0, 10))} الساعة ${iso(d.submission.at.slice(11, 16))}${d.submission.byUser ? '، بواسطة ' + d.submission.byUser : ''}.`;
+    if (d.submission) note = `سُلّم التقرير ${relDay(d.submission.at.slice(0, 10))} الساعة ${iso(d.submission.at.slice(11, 16))}${d.submission.byUser ? '، بواسطة ' + d.submission.byUser : ''}.`;
     else note = 'لم يُسلَّم هذا التقرير بعد.';
     if (!ro && !is(ROLE.ADMIN) && pd) note += ` يمكنك التعديل حتى ${fDate(pd.endDate)}.`;
     if (ro) {
@@ -1651,7 +2440,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         <input type="hidden" name="month" value="${d.month}"><input type="hidden" name="halaqaId" value="${d.halaqa.id}">
         ${d.entries.map((e, i) => repCard(e, i, ro))}
         ${ro ? '' : html`<div class="savebar no-print"><span id="repLeft"></span><button class="btn" type="submit">${d.submission ? 'حفظ التعديلات' : 'حفظ وتسليم التقرير'}</button></div>`}
-      </form>` : emptyBox('لا يوجد طلاب فعّالون في هذه الحلقة.')}`;
+      </form>` : emptyBox('لا يوجد طلاب فعّالون في هذه الحلقة.')}
+      ${d.exams && d.exams.length ? html`<section class="section no-print">
+        <div class="section-head"><h2>اختبارات الشهر</h2><p>${examCount(d.exams.length)}</p></div>
+        ${examsTable(d.exams, true)}</section>` : ''}`;
     $$('.rep-card').forEach(updateRepCalc);
     updateRepLeft();
   }
@@ -1984,6 +2776,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
             </dl>
           </section>
           ${d.rewards ? rewardsBox(d.rewards, 'طالب', s.id) : ''}
+          ${d.exams ? examsBox(d.exams, s) : ''}
         </div>
       </div>`;
   }
@@ -2185,7 +2978,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       }
     }
     mutate(action, payload, { label });
-    toast('حُفظ الكشف على هذا الجهاز، وسيُستورد تلقائياً عند عودة الإنترنت');
+    toast('حُفظ الكشف');
     return null;
   }
 
@@ -2322,7 +3115,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
             <td class="wrap">${s.lastAchievement || '—'}</td><td class="num">${s.attendance == null ? '—' : rateChip(s.attendance)}</td>
             <td>${chip(s.status, STATUS_KIND[s.status])}</td></tr>`)}</tbody>
         </table></div>${paged('halaqaStudents', d.students).bar}` : emptyBox('لا يوجد طلاب في هذه الحلقة بعد.', is(ROLE.ADMIN) ? html`<button class="btn" data-act="student-new" data-halaqa="${h.id}">إضافة طالب</button>` : '')}
-      </section>`;
+      </section>
+      ${halaqaCourses(h)}`;
   }
 
   async function pageTeacher(main, p, seq) {
@@ -2731,7 +3525,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       cancelLabel: 'إغلاق',
       keepOpen: true,
       body: html`<div class="receipt">
-        <div class="receipt-head">${brandMark(48)}<div><h2>${S.settings.orgName}</h2><p class="sub">إيصال رقم ${t.receipt || (isTemp(t.id) ? 'يُحدَّد بعد الإرسال إلى الشيت' : t.id)}</p></div></div>
+        <div class="receipt-head">${brandMark(48)}<div><h2>${S.settings.orgName}</h2><p class="sub">إيصال رقم ${t.receipt || (isTemp(t.id) ? '—' : t.id)}</p></div></div>
         <dl class="info">
           <dt>استلمنا من</dt><dd>${t.sponsorName || 'فاعل خير'}</dd>
           <dt>المبلغ</dt><dd class="receipt-amount">${money(t.amount)}</dd>
@@ -2755,7 +3549,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       cancelLabel: 'إغلاق',
       keepOpen: true,
       body: html`<div class="receipt">
-        <div class="receipt-head">${brandMark(48)}<div><h2>${S.settings.orgName}</h2><p class="sub">سند صرف رقم ${t.receipt || (isTemp(t.id) ? 'يُحدَّد بعد الإرسال إلى الشيت' : t.id)}</p></div></div>
+        <div class="receipt-head">${brandMark(48)}<div><h2>${S.settings.orgName}</h2><p class="sub">سند صرف رقم ${t.receipt || (isTemp(t.id) ? '—' : t.id)}</p></div></div>
         <dl class="info">
           <dt>صُرفت إلى</dt><dd>${t.beneficiaryName} (${kindWord(t.beneficiaryKind)})</dd>
           <dt>المبلغ</dt><dd class="receipt-amount">${money(t.amount)}</dd>
@@ -2829,7 +3623,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         <h3 class="form-sec">الحساب</h3>
         <div class="grid2">
           <label class="field"><span>الاسم رباعياً</span><input name="name" required value="${u.name || ''}"></label>
-          <label class="field"><span>الدور</span><select name="role">${options([ROLE.TEACHER, ...AMIRS, ROLE.ACCOUNTANT, ROLE.ADMIN], u.role || ROLE.TEACHER)}</select></label>
+          <label class="field"><span>الدور</span><select name="role">${options([ROLE.TEACHER, ...AMIRS, ROLE.EXAMINER, ROLE.ACCOUNTANT, ROLE.ADMIN], u.role || ROLE.TEACHER)}</select></label>
         </div>
         <div class="grid2">
           <label class="field"><span>رقم الهوية (هو اسم المستخدم)</span><input name="nationalId" dir="ltr" inputmode="numeric" ${u.username && !u.nationalId ? '' : raw('required')} value="${u.nationalId || ''}"></label>
@@ -2968,8 +3762,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       cls: 'narrow',
       body: html`<div class="menu-list">
         ${pages.map(k => html`<a href="#" data-go="${k}">${icon(PAGES[k].icon)}${pageTitle(k)}</a>`)}
-        ${APP_URL && !API_URL ? html`<a href="${APP_URL}" target="_blank" rel="noopener">${icon('download')}فتح النظام كتطبيق (يعمل دون إنترنت)</a>` : ''}
-        ${API_URL && installPrompt ? html`<button data-act="app-install">${icon('download')}تثبيت التطبيق على هذا الجهاز</button>` : ''}
+        ${installCtl('', API_URL ? 'تثبيت التطبيق على هذا الجهاز' : 'فتح النظام كتطبيق (يعمل دون إنترنت)')}
         <button data-act="password">${icon('lock')}تغيير كلمة المرور</button>
         <button data-act="logout">${icon('logout')}تسجيل الخروج</button>
       </div>`,
@@ -3022,6 +3815,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
           <td>${full(r) ? rangeText(r) : '-'}</td><td>${full(r) ? fmtN(rangeInfo(r.fromSurah, r.fromAyah, r.toSurah, r.toAyah).ayat) : '-'}</td>
           <td>${r.sard.length ? r.sard.join('، ') : '-'}</td><td>${r.presentDays === '' ? '-' : r.presentDays}</td><td>${r.absentDays === '' ? '-' : r.absentDays}</td>
           <td>${r.grade || '-'}</td><td class="notes">${r.notes || ''}</td></tr>`)}</tbody></table>
+      ${d.exams && d.exams.length ? html`<h2 class="pr-sub">اختبارات الشهر</h2>
+        <table><thead><tr><th>#</th><th>الطالب</th><th>التاريخ</th><th>النوع</th><th>الجزء أو السلسلة</th><th>العلامة</th><th>التفاصيل</th></tr></thead>
+        <tbody>${d.exams.map((e, i) => html`<tr><td>${i + 1}</td><td class="name">${e.studentName}</td><td>${fDate(e.date)}</td><td>${e.kind}</td>
+          <td>${examScope(e)}</td><td>${examMarkText(e)}</td><td class="notes">${examDetails(e)}</td></tr>`)}</tbody></table>` : ''}
       <div class="pr-foot"><span>توقيع المحفّظ: ......................</span><span>توقيع مدير المركز: ......................</span><span>تاريخ الطباعة: ${fDate(deviceDay())}</span></div>
     </div>`, true);
   }
@@ -3389,16 +4186,16 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
 
   const ACTIONS = {
     'logout': () => signOut(),
+    'forgot': () => showReset(),
+    'back-login': () => showLogin(),
     'sync': () => syncSheet(),
-    'app-hint-hide': () => { store.set('qc_app_hint', '1'); refreshView(); },
     'app-install': async () => {
-      if (!installPrompt) return;
       closeModal();
+      if (!installPrompt) { installHelp(); return; }
       installPrompt.prompt();
       const r = await installPrompt.userChoice.catch(() => null);
       installPrompt = null;
-      if (r && r.outcome === 'accepted') { store.set('qc_app_hint', '1'); toast('ثُبّت التطبيق على جهازك'); }
-      refreshView();
+      if (r && r.outcome === 'accepted') toast('ثُبّت التطبيق على جهازك');
     },
     'page': el => { S.pages[el.dataset.key] = Number(el.dataset.page); repage(el.dataset.key); },
     'sel-all': () => { filteredStudents().forEach(s => S.selected.add(String(s.id))); renderStudentRows(); },
@@ -3407,7 +4204,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     'bulk-del': async () => {
       const ids = [...S.selected];
       if (!ids.length) return;
-      if (!(await confirmBox(`هل تريد حذف ${nStudents(ids.length)}؟ تبقى تقاريرهم السابقة محفوظة في الشيت.`, 'حذف المحدّدين'))) return;
+      if (!(await confirmBox(`هل تريد حذف ${nStudents(ids.length)}؟ تبقى تقاريرهم السابقة محفوظة.`, 'حذف المحدّدين'))) return;
       mutate('students.deleteMany', { ids: ids.map(idOf) }, { label: `حذف ${nStudents(ids.length)}` });
       ids.forEach(removeStudentLocal);
       commitLocal();
@@ -3445,7 +4242,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     'student-new': el => studentForm(el.dataset.halaqa ? { halaqaId: Number(el.dataset.halaqa) } : {}),
     'student-del': async el => {
       const s = S.students.find(x => same(x.id, el.dataset.id)) || { name: '' };
-      if (!(await confirmBox(`هل تريد حذف الطالب «${s.name}»؟ تبقى تقاريره السابقة محفوظة في الشيت. وإذا ترك الطالب المركز، يمكنك بدلاً من الحذف تغيير حالته إلى «منسحب».`, 'حذف الطالب'))) return;
+      if (!(await confirmBox(`هل تريد حذف الطالب «${s.name}»؟ تبقى تقاريره السابقة محفوظة. وإذا ترك الطالب المركز، يمكنك بدلاً من الحذف تغيير حالته إلى «منسحب».`, 'حذف الطالب'))) return;
       const id = el.dataset.id;
       mutate('students.delete', { id: idOf(id) }, { label: 'حذف الطالب ' + s.name });
       removeStudentLocal(id);
@@ -3505,6 +4302,52 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     },
     'reward-new': el => txForm({}, { type: 'مكافأة', beneficiaryKind: el.dataset.kind || 'طالب', beneficiaryId: el.dataset.id || '' }).catch(e => toast(e.message, 'error')),
     'sponsor-new': () => sponsorForm(),
+    'exam-new': el => examForm(el.dataset.kind, el.dataset.student ? { studentId: idOf(el.dataset.student) } : {}),
+    'exam-edit': el => { const e = findExam(el.dataset.id); if (e) examForm(e.kind, e); },
+    'exam-del': async el => {
+      const e = findExam(el.dataset.id);
+      if (!e || !(await confirmBox(`هل تريد حذف اختبار ${e.studentName} (${examScope(e)})؟`, 'حذف الاختبار'))) return;
+      mutate('exams.delete', { id: idOf(e.id) }, { label: 'حذف اختبار ' + e.studentName });
+      putExamEverywhere(e, true);
+      commitLocal();
+      toast('حُذف الاختبار');
+      refreshView();
+    },
+    'exam-approve': el => reviewExam(el.dataset.id, true),
+    'exam-reject': el => {
+      openModal({
+        title: 'رفض الاختبار', cls: 'narrow', danger: true, submitLabel: 'رفض الاختبار',
+        body: html`<label class="field"><span>سبب الرفض (اختياري)</span><input name="note" placeholder="يظهر للمحفّظ"></label>`,
+        onSubmit: async data => { setTimeout(() => reviewExam(el.dataset.id, false, data.note), 0); },
+      });
+    },
+    'exam-criteria': () => criteriaForm(),
+    'comp-sort': el => { S.compSort = el.dataset.key; refreshView(); },
+    'course-new': el => courseForm(el.dataset.halaqa ? { audience: 'حلقة', audienceRef: idOf(el.dataset.halaqa) } : {}),
+    'course-edit': el => courseForm((readOf('courses.list', {}) || []).find(c => same(c.id, el.dataset.id))),
+    'course-del': async el => {
+      const c = (readOf('courses.list', {}) || []).find(x => same(x.id, el.dataset.id));
+      if (!c || !(await confirmBox(`هل تريد حذف «${c.title}»؟`, 'حذف الدورة'))) return;
+      mutate('courses.delete', { id: idOf(c.id) }, { label: 'حذف دورة ' + c.title });
+      patchReads('courses.list', list => { const i = list.findIndex(x => same(x.id, c.id)); if (i >= 0) list.splice(i, 1); });
+      patchReads('dashboard', d => { if (d.courses) d.courses = d.courses.filter(x => !same(x.id, c.id)); });
+      commitLocal();
+      toast('حُذفت الدورة');
+      refreshView();
+    },
+    'activity-new': el => activityForm({ date: el.dataset.month && el.dataset.month !== S.today.slice(0, 7) ? el.dataset.month + '-01' : S.today }),
+    'activity-edit': el => activityForm((S.activitiesCache || []).concat(((readOf('dashboard', {}) || {}).activities) || []).find(a => same(a.id, el.dataset.id))),
+    'activity-del': async el => {
+      const a = (S.activitiesCache || []).find(x => same(x.id, el.dataset.id));
+      if (!a || !(await confirmBox(`هل تريد حذف «${a.title}»؟`, 'حذف النشاط'))) return;
+      mutate('activities.delete', { id: idOf(a.id) }, { label: 'حذف نشاط ' + a.title });
+      const drop = list => { const i = list.findIndex(x => same(x.id, a.id)); if (i >= 0) list.splice(i, 1); };
+      patchReads('activities.list', drop);
+      patchReads('dashboard', d => { if (d.activities) drop(d.activities); });
+      commitLocal();
+      toast('حُذف النشاط');
+      refreshView();
+    },
     'sponsor-edit': el => sponsorForm((S.sponsorsCache || []).find(s => same(s.id, el.dataset.id))),
   };
 
@@ -3537,11 +4380,17 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       S.pages = {};
       repage(key);
     },
+    'act-month': el => { if (el.value) go('activities', { month: el.value }, 'replace'); },
+    'comp-period': el => { S.compPeriod = el.value; refreshView(); },
+    'course-aud': el => go('courses', { aud: el.value }, 'replace'),
+    'ex-filter': () => go('exams', { q: ($('#exQ') || {}).value || '', kind: ($('#exK') || {}).value || '', status: ($('#exS') || {}).value || '' }, 'replace'),
+    'act-aud': el => go('activities', { month: el.dataset.month, aud: el.value }, 'replace'),
     'fin-month': el => { if (el.value) go('finance', { tab: el.dataset.tab, month: el.value }, 'replace'); },
   };
 
   const FORMS = {
     login: submitLogin,
+    reset: submitReset,
     report: submitReport,
     modal: submitModal,
   };
@@ -3577,7 +4426,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       if (!form) return;
       if (form.dataset.form === 'report') { form.classList.add('dirty'); onRepChange(t); updateRepLeft(); }
       if (form.dataset.form === 'modal' && (t.name === 'type' || t.name === 'beneficiaryKind') && form.beneficiaryId && form.querySelector('#catList')) syncTxForm(form);
-      if (form.dataset.form === 'modal' && t.name === 'kind') syncKafalaForm(form);
+      if (form.dataset.form === 'modal' && t.name === 'kind' && form.dataset.kafala) syncKafalaForm(form);
+      if (form.dataset.form === 'modal' && form.dataset.activity && (t.name === 'audience' || t.name === 'status')) syncActivityForm(form);
+      if (form.dataset.form === 'modal' && form.dataset.course && (t.name === 'audience' || t.name === 'trainerKind')) syncCourseForm(form);
+      if (form.dataset.form === 'modal' && form.dataset.exam) syncExamForm(form);
       // نموذج الطالب: مرحلة الحلقة إذا ما انحدّدت مرحلة
       if (form.dataset.form === 'modal' && t.name === 'halaqaId' && form.stage && form.stage.tagName === 'SELECT' && !form.stage.value) {
         const h = S.halaqat.find(x => same(x.id, t.value));
@@ -3588,6 +4440,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     document.addEventListener('input', e => {
       const t = e.target;
       if (t.form && t.form.dataset.form === 'report') { t.form.classList.add('dirty'); updateRepLeft(); }
+      if (t.form && t.form.dataset.exam && /^(hints|errors|ahkam)$/.test(t.name)) syncExamForm(t.form);
       if (t.hasAttribute && t.hasAttribute('data-import')) {
         clearTimeout(inputTimer);
         inputTimer = setTimeout(() => renderImportPreview(t), 200);
