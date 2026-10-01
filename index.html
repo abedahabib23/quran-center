@@ -319,6 +319,9 @@ td.actions .icon-btn { width: 32px; height: 32px; }
 
 /* ───────── التقرير الشهري ───────── */
 .notice.ok { background: var(--green-wash); color: var(--green-strong); }
+.app-hint { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.app-hint p { margin-top: 2px; font-size: 13.5px; }
+.login-app { text-align: center; font-size: 13.5px; color: var(--muted); }
 .period-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
 .period-notice p { margin-top: 2px; font-size: 13.5px; }
 .rep { display: grid; gap: 12px; }
@@ -538,6 +541,11 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   const TOKEN_KEY = 'quran_center_token';
   const LOCAL = 'qc1:'; // بيانات النظام المحفوظة على الجهاز حتى يشتغل بدون إنترنت
   const API_URL = window.API_URL || ''; // نسخة التطبيق المثبّت بتتصل بالسيرفر مباشرة
+  const APP_URL = window.APP_URL || ''; // رابط التطبيق اللي بيفتح بدون إنترنت (بيظهر برابط جوجل)
+  const standalone = () => { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } };
+  // أندرويد: المتصفح بيعرض تثبيت التطبيق، بنحفظ الطلب لزر «تثبيت التطبيق»
+  let installPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; });
   const ROLE = { ADMIN: 'مدير', TEACHER: 'محفظ', ACCOUNTANT: 'محاسب' };
   const AMIRS = ['أمير إبتدائي', 'أمير إعدادي', 'أمير ثانوي']; // أمير المرحلة بيشوف طلاب مرحلته للعرض
   const ALL = [ROLE.ADMIN, ROLE.TEACHER, ROLE.ACCOUNTANT, ...AMIRS];
@@ -1195,6 +1203,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
             <input name="password" type="password" autocomplete="current-password" required dir="ltr"></label>
           <p class="form-error" hidden></p>
           <button class="btn block" type="submit">دخول</button>
+          ${APP_URL && !API_URL ? html`<p class="login-app">للعمل دون إنترنت: <a href="${APP_URL}" target="_blank" rel="noopener">افتح النظام كتطبيق</a></p>` : ''}
           <div class="login-foot"></div>
         </form>
       </div>`;
@@ -1424,9 +1433,29 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     if (stale(seq)) return;
     main.innerHTML = html`
       <div class="page-head"><div><h1>أهلاً ${S.user.name}</h1><p class="sub">${dWeek.format(toDate(S.today))}</p></div></div>
+      ${appHint()}
       ${d.teaching ? homeTeaching(d.teaching) : ''}
       ${d.finance ? homeFinance(d.finance, !d.teaching) : ''}`;
     prefetchOffline();
+  }
+
+  // تنبيه بالرئيسية: من رابط جوجل بنوجّه للتطبيق، ومن التطبيق بالمتصفح بنشرح التثبيت
+  function appHint() {
+    if (store.get('qc_app_hint') || standalone()) return '';
+    if (APP_URL && !API_URL) {
+      return html`<div class="notice app-hint"><div><strong>النظام يعمل دون إنترنت كتطبيق</strong>
+        <p>رابط Google يحتاج إلى إنترنت ليُفتح. افتح النظام من رابط التطبيق وسجّل الدخول مرة واحدة، ثم ثبّته على جهازك ليُفتح ويعمل دون إنترنت.</p></div>
+        <div class="ph-actions"><a class="btn sm" href="${APP_URL}" target="_blank" rel="noopener">فتح التطبيق</a><button class="btn sm ghost" data-act="app-hint-hide">إخفاء</button></div></div>`;
+    }
+    if (API_URL) {
+      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      return html`<div class="notice app-hint"><div><strong>ثبّت التطبيق على جهازك</strong>
+        <p>${installPrompt ? 'يُضاف النظام إلى الشاشة الرئيسية كتطبيق، ويُفتح دون إنترنت.'
+          : ios ? 'من متصفح Safari اضغط زر المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية».'
+          : 'من قائمة المتصفح ⋮ اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».'}</p></div>
+        <div class="ph-actions">${installPrompt ? html`<button class="btn sm" data-act="app-install">تثبيت التطبيق</button>` : ''}<button class="btn sm ghost" data-act="app-hint-hide">إخفاء</button></div></div>`;
+    }
+    return '';
   }
 
   function homeTeaching(t) {
@@ -2939,6 +2968,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       cls: 'narrow',
       body: html`<div class="menu-list">
         ${pages.map(k => html`<a href="#" data-go="${k}">${icon(PAGES[k].icon)}${pageTitle(k)}</a>`)}
+        ${APP_URL && !API_URL ? html`<a href="${APP_URL}" target="_blank" rel="noopener">${icon('download')}فتح النظام كتطبيق (يعمل دون إنترنت)</a>` : ''}
+        ${API_URL && installPrompt ? html`<button data-act="app-install">${icon('download')}تثبيت التطبيق على هذا الجهاز</button>` : ''}
         <button data-act="password">${icon('lock')}تغيير كلمة المرور</button>
         <button data-act="logout">${icon('logout')}تسجيل الخروج</button>
       </div>`,
@@ -3359,6 +3390,16 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   const ACTIONS = {
     'logout': () => signOut(),
     'sync': () => syncSheet(),
+    'app-hint-hide': () => { store.set('qc_app_hint', '1'); refreshView(); },
+    'app-install': async () => {
+      if (!installPrompt) return;
+      closeModal();
+      installPrompt.prompt();
+      const r = await installPrompt.userChoice.catch(() => null);
+      installPrompt = null;
+      if (r && r.outcome === 'accepted') { store.set('qc_app_hint', '1'); toast('ثُبّت التطبيق على جهازك'); }
+      refreshView();
+    },
     'page': el => { S.pages[el.dataset.key] = Number(el.dataset.page); repage(el.dataset.key); },
     'sel-all': () => { filteredStudents().forEach(s => S.selected.add(String(s.id))); renderStudentRows(); },
     'sel-clear': () => { S.selected.clear(); renderStudentRows(); },
