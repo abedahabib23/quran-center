@@ -442,9 +442,37 @@ a.srow:hover { background: var(--surface-2); }
 /* ───────── الاختبارات ───────── */
 .exam-mark { padding: 12px 14px; border-radius: 10px; background: var(--green-wash); color: var(--green-strong); font-size: 15px; text-align: center; }
 .exam-mark strong { font-size: 22px; margin-inline: 4px; }
-.pending-exams { border-inline-start: 4px solid var(--gold); }
+.pending-exams, .security-box { border-inline-start: 4px solid var(--gold); }
+.security-box .row { flex-wrap: wrap; gap: 8px; }
 .pending-exams .row { flex-wrap: wrap; gap: 8px; }
 .pr-sub { font-size: 15px; margin: 18px 0 8px; color: #000; }
+
+/* ───────── حضور وغياب المحفّظين ───────── */
+.tatt-list { padding: 4px 16px; }
+.tatt-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 0; border-top: 1px solid var(--line); }
+.tatt-row:first-child { border-top: 0; }
+.tatt-name { flex: 1 1 180px; min-width: 0; }
+.tatt-name strong { display: block; font-size: 14.5px; }
+.tatt-name small { color: var(--muted); font-size: 12.5px; }
+.tatt-note { flex: 1 1 150px; height: 36px; font-size: 14px; }
+.tatt-seg .st-p input:checked + span, .tatt-key.m-p, .tatt-matrix td.m-p { background: var(--good-wash); color: var(--good-ink); }
+.tatt-seg .st-l input:checked + span, .tatt-key.m-l, .tatt-matrix td.m-l { background: var(--warn-wash); color: var(--warn-ink); }
+.tatt-seg .st-a input:checked + span, .tatt-key.m-a, .tatt-matrix td.m-a { background: var(--bad-wash); color: var(--bad-ink); }
+.tatt-seg .st-e input:checked + span, .tatt-key.m-e, .tatt-matrix td.m-e { background: var(--neutral-wash); color: var(--neutral-ink); }
+.tatt-seg input:checked + span { font-weight: 700; }
+.tatt-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 13px; color: var(--ink-2); }
+.tatt-key { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 12.5px; font-weight: 700; margin-inline-start: 8px; }
+.tatt-matrix { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.tatt-matrix table { width: auto; min-width: 100%; border-collapse: collapse; font-size: 13px; }
+.tatt-matrix th, .tatt-matrix td { padding: 7px 3px; min-width: 27px; text-align: center; border: 1px solid var(--line); background: var(--surface); }
+.tatt-matrix thead th { background: var(--surface-2); font-weight: 500; color: var(--ink-2); }
+.tatt-matrix th:first-child { position: sticky; inset-inline-start: 0; z-index: 1; min-width: 130px; padding-inline: 12px; text-align: start; font-weight: 600; color: var(--ink); background: var(--surface); }
+.tatt-matrix thead th:first-child { background: var(--surface-2); }
+.tatt-matrix th.today { color: var(--green-strong); font-weight: 700; box-shadow: inset 0 -3px var(--gold); }
+.tatt-matrix th.fri { color: var(--muted); }
+.tatt-matrix td[data-go] { cursor: pointer; }
+.tatt-matrix td[data-go]:hover { outline: 2px solid var(--green); outline-offset: -2px; }
+.tatt-matrix td { font-weight: 700; }
 
 /* ───────── الصفحات والتحديد الجماعي ───────── */
 .pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px 4px; }
@@ -521,6 +549,8 @@ a.srow.selected, .srow.selected { background: var(--green-wash); }
 .menu-list { display: grid; gap: 2px; margin: -6px -8px; }
 .menu-list a, .menu-list button { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; color: var(--ink); text-decoration: none; background: none; border: 0; font: inherit; font-size: 15px; cursor: pointer; text-align: start; }
 .menu-list a:hover, .menu-list button:hover { background: var(--surface-2); }
+.menu-list .danger-link { color: var(--bad-ink); }
+.menu-list .danger-link:hover { background: var(--bad-wash); }
 
 .toast {
   position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
@@ -632,7 +662,7 @@ body:has(.savebar) .sync-pill { bottom: 84px; }
 </style>
 </head>
 <body>
-<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "73e4394";</script>
+<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "2f94b92";</script>
 <div id="app"><div class="login"><div class="login-card" aria-busy="true" aria-label="جارٍ التحميل"><span class="sk" style="width:132px;height:132px;border-radius:28px;justify-self:center"></span><span class="sk" style="width:70%;height:22px;border-radius:6px;justify-self:center"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:40px;border-radius:8px"></span></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
@@ -799,6 +829,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     receipt: '<path d="M6 3.5h12v17l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
     download: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/>',
     flag: '<path d="M5.5 21V4"/><path d="M5.5 4.5h11l-2.2 4 2.2 4h-11"/>',
+    calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="m9 15 2 2 4-4"/>',
     cap: '<path d="M2.5 9 12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11.2v4.3c1.5 1.4 3.5 2.1 5.5 2.1s4-.7 5.5-2.1v-4.3"/><path d="M21.5 9v5"/>',
     medal: '<circle cx="12" cy="15" r="5.5"/><path d="M8.6 10.6 6 3h4l2 5 2-5h4l-2.6 7.6"/><path d="m12 12.5.9 1.8 2 .3-1.4 1.4.3 2-1.8-.9-1.8.9.3-2-1.4-1.4 2-.3z"/>',
     gift: '<rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8.5V20"/><path d="M12 8.5C10.5 5 7 4.5 7 6.8S10 8.5 12 8.5zM12 8.5c1.5-3.5 5-4 5-1.7S14 8.5 12 8.5z"/>',
@@ -890,12 +921,14 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   // نسخ الصفحات بتنحفظ بـ IndexedDB لأنه مساحته كبيرة (localStorage صغير)، وإذا مش متوفر بـ localStorage
   let useIdb = typeof indexedDB !== 'undefined';
   let idbOpen = null;
+  // إذا تعلّق IndexedDB (بيصير بمتصفحات أو أوضاع خاصة) ما بنستنى للأبد: بنكمّل على localStorage بدل ما التطبيق يضل فاتح على التحميل
   const idbDb = () => idbOpen || (idbOpen = new Promise((res, rej) => {
+    const timer = setTimeout(() => rej(new Error('idb timeout')), 4000);
     const r = indexedDB.open('qc-offline', 1);
     r.onupgradeneeded = () => r.result.createObjectStore('reads');
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-    r.onblocked = () => rej(new Error('blocked'));
+    r.onsuccess = () => { clearTimeout(timer); res(r.result); };
+    r.onerror = () => { clearTimeout(timer); rej(r.error); };
+    r.onblocked = () => { clearTimeout(timer); rej(new Error('blocked')); };
   }));
   const idbRange = uid => IDBKeyRange.bound(uid + '|', uid + '|\uffff');
   const idb = {
@@ -952,7 +985,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     local.set('boot', { user: S.user, settings: S.settings, halaqat: S.halaqat, students: S.students, teachers: S.teachers, lists: S.lists, today: S.today });
   }
   // بعد أي تعديل انعمل على الجهاز
-  function commitLocal() { saveBoot(); saveReadsSoon(); }
+  let bulkLocal = 0; // أثناء تطبيق كشف كبير بنحفظ مرة وحدة بالآخر، مش مع كل سجل
+  function commitLocal() { if (bulkLocal) return; saveBoot(); saveReadsSoon(); }
   async function restoreLocal(uid) {
     reads.clear();
     savedSig.clear();
@@ -1039,7 +1073,16 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   function mutate(action, payload, o = {}) {
     let p = JSON.stringify(payload);
     Object.keys(aliases).forEach(t => { p = p.split(JSON.stringify(t)).join(JSON.stringify(aliases[t])); });
-    outbox.push({ op: newId('op'), action, payload: JSON.parse(p), tempId: o.tempId || '', day: deviceDay(), label: o.label || '', at: Date.now() });
+    // سجل ظاهر من كشف مستورد لسا ما وصل للسيرفر: ما بنقدر نعدّله قبل ما ياخد رقمه الحقيقي
+    if (!o.imp) {
+      const held = [...pendingImportIds()].find(id => p.includes(JSON.stringify(id)));
+      if (held) {
+        const e = new Error('هذا السجل ظهر من كشف استوردته ولم يصل إلى السيرفر بعد. عدّله بعد عودة الإنترنت.');
+        e.userMsg = true;
+        throw e;
+      }
+    }
+    outbox.push({ op: newId('op'), action, payload: JSON.parse(p), tempId: o.tempId || '', day: deviceDay(), label: o.label || '', at: Date.now(), imp: o.imp });
     saveOutbox();
     flushSoon(30);
   }
@@ -1073,6 +1116,9 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
           const o = outbox.splice(i, 1)[0];
           sent = true;
           if (!r.ok) failed.push({ label: o.label || o.action, error: r.error, at: Date.now() });
+          // كشف مستورد انبعت: بتنشال نسخته المؤقتة، والصفوف اللي رفضها السيرفر بتنعرض بقائمة «تعذّر حفظ»
+          if (o.imp) importDone(o);
+          if (r.ok && r.info && r.info.errors) r.info.errors.forEach(x => failed.push({ label: `${o.label || o.action} (الصف ${x.line})`, error: x.error, at: Date.now() }));
         });
         saveOutbox();
         if (retry || !res.results.length) { flushSoon(20000); break; }
@@ -1209,7 +1255,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     if (modal) return false;
     const a = document.activeElement;
     if (a && a.closest && a.closest('#main') && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return false;
-    return !$('form.rep.dirty');
+    return !$('form.rep.dirty, form.tatt-form.dirty');
   }
   // بعد الحفظ من نافذة: بنحدّث الصفحة بعد ما تتسكّر النافذة
   const refreshView = () => setTimeout(() => { if (S.user && !modal) go(S.route, S.params, 'none', true); }, 0);
@@ -1239,8 +1285,14 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   function wireNetwork() {
     window.addEventListener('online', ping);
     window.addEventListener('offline', () => setOnline(false));
+    let hiddenAt = 0;
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden || !S.user) return;
+      if (document.hidden) { hiddenAt = Date.now(); return; }
+      if (!S.user) return;
+      // رجع بعد غياب طويل: بنطلب الدخول من جديد، إلا إذا في تقرير أو حضور عم يتعبّى ولسا ما انحفظ (ما بنضيّع شغله)
+      const away = hiddenAt ? Date.now() - hiddenAt : 0;
+      hiddenAt = 0;
+      if (AUTO_LOCK && away > LOCK_AFTER_MS && !$('form.rep.dirty, form.tatt-form.dirty')) { lockApp(); return; }
       if (outbox.length) flushSoon(0);
       else if (online) quietRender();
       else ping();
@@ -1286,7 +1338,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const uid = userIndex()[String(username).trim().toLowerCase()];
     const auth = uid && local.get('auth', uid), saved = uid && local.get('boot', uid);
     if (!subtle || !auth || !saved) throw new Error('لا يوجد اتصال بالإنترنت. أول تسجيل دخول على هذا الجهاز يحتاج إلى إنترنت، وبعدها يمكنك الدخول دونه.');
-    if (await passPrint(password, auth.salt) !== auth.hash) throw new Error('اسم المستخدم أو كلمة المرور غير صحيحة');
+    if (await passPrint(password, auth.salt) !== auth.hash) throw new Error('اسم المستخدم أو كلمة المرور غير صحيحة. إذا غيّرتها من جهاز آخر فسجّل الدخول مرة واحدة بالإنترنت على هذا الجهاز.');
     return { uid, saved };
   }
 
@@ -1358,12 +1410,28 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
 
   /* ═════════ الدخول ═════════ */
 
+  // التطبيق بيطلب تسجيل الدخول عند كل فتح، وبعد ما يغيب عن الشاشة أكتر من هالمدة
+  // (الجوال بيخلّي التطبيق بالذاكرة وبيرجّعه بدون ما يتفتح من جديد). المعاينة (?as=) بتدخل مباشرة.
+  const LOCK_AFTER_MS = 5 * 60 * 1000;
+  const AUTO_LOCK = !window.__devAs;
+  const lastUsername = () => store.get(LOCAL + 'lastUser') || '';
+
   async function boot() {
     wireEvents();
     wireNetwork();
     S.token = store.get(TOKEN_KEY);
     let last = null;
     try { last = JSON.parse(store.get(LOCAL + 'last') || 'null'); } catch (e) { /* قديمة */ }
+    // جلسة من فتح سابق: بنقفلها. بيانات الجهاز والتعديلات اللي ما انبعتت بتضل، وبترجع بعد ما يدخل
+    // (بكلمة المرور، وبدون إنترنت كمان إذا سجّل دخول على هالجهاز قبل)
+    if (AUTO_LOCK && (S.token || last)) {
+      const old = S.token;
+      store.del(TOKEN_KEY);
+      store.del(LOCAL + 'last');
+      S.token = null;
+      if (old) serverCall('logout', old).catch(() => {}); // الجلسة القديمة بتنلغي على السيرفر كمان
+      return showLogin('', lastUsername());
+    }
     // نسخة الجهاز بس لنفس الجلسة اللي حفظتها
     const saved = S.token && last && last.token === S.token ? local.get('boot', last.uid) : null;
     if (saved) {
@@ -1375,7 +1443,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       refreshFromServer();
       return;
     }
-    if (!S.token) return showLogin();
+    if (!S.token) return showLogin('', lastUsername());
     try {
       const d = await call('bootstrap', { home: true });
       await restoreLocal(d.user.id);
@@ -1489,6 +1557,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         if (!e.offline) throw e;
         // بدون إنترنت: بنفتح من نسخة الجهاز إذا سجّل دخول عليه قبل هيك
         const o = await offlineLogin(username, password);
+        store.set(LOCAL + 'lastUser', String(username).trim().toLowerCase());
         S.token = null;
         pendingCreds = { username, password };
         await restoreLocal(o.uid);
@@ -1498,6 +1567,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       }
       S.token = r.token;
       store.set(TOKEN_KEY, r.token);
+      store.set(LOCAL + 'lastUser', String(username).trim().toLowerCase());
       setOnline(true);
       savePassPrint(r.data.user.id, username, password);
       await restoreLocal(r.data.user.id);
@@ -1514,7 +1584,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
 
   // الخروج: نسخة الجهاز والتعديلات اللي ما انبعتت بيضلّوا، حتى يقدر يرجع يدخل بدون إنترنت
   // وتنبعت التعديلات أول ما يدخل وفي إنترنت
-  async function signOut() {
+  async function signOut(msg, username) {
     if (S.token) serverCall('logout', S.token).catch(() => {});
     clearTimeout(readsTimer);
     saveReads();
@@ -1524,7 +1594,16 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     pendingCreds = null;
     outbox = []; failed = []; reads.clear();
     closeModal();
-    showLogin();
+    showLogin(msg, username);
+  }
+
+  // قفل التطبيق (بعد غياب طويل عن الشاشة): بنحاول نبعت اللي ما انبعت، وبعدين بنرجع لشاشة الدخول
+  async function lockApp() {
+    const uname = S.user && S.user.username;
+    if (outbox.length && online && S.token) {
+      try { await Promise.race([flush(), new Promise(r => setTimeout(r, 4000))]); } catch (e) { /* بتنبعت بعد الدخول */ }
+    }
+    await signOut('أُغلق التطبيق للحماية لأنك ابتعدت عنه. سجّل الدخول من جديد.', uname);
   }
 
   /* ═════════ الصفحات والتنقل ═════════ */
@@ -1537,6 +1616,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     activities: { title: 'الأنشطة', icon: 'flag', roles: ALL, render: pageActivities },
     courses: { title: 'الدورات', icon: 'book', roles: VIEW, render: pageCourses },
     exams: { title: 'الاختبارات', icon: 'medal', roles: EXAM_ROLES, render: pageExams },
+    tattendance: { title: 'حضور المحفّظين', icon: 'calendar', roles: VIEW, render: pageTAtt },
     student: { hidden: true, parent: 'students', roles: VIEW, render: pageStudent },
     halaqat: { title: 'الحلقات', icon: 'circle', roles: STAFF, render: pageHalaqat },
     halaqa: { hidden: true, parent: 'halaqat', roles: VIEW, render: pageHalaqa },
@@ -1550,7 +1630,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   // «المرحلة الإعدادية»، و«مرحلة التثبيت»
   const stageName = st => !st ? '' : st === 'تثبيت' ? 'مرحلة التثبيت' : 'المرحلة ال' + st + 'ة';
   const pageTitle = k => k === 'students' && is(ROLE.TEACHER) ? 'طلابي' : k === 'students' && isAmir() ? 'طلاب ' + stageName(myStage())
-    : k === 'reports' && is(ROLE.TEACHER) ? 'التقرير الشهري' : PAGES[k].title;
+    : k === 'reports' && is(ROLE.TEACHER) ? 'التقرير الشهري' : k === 'tattendance' && is(ROLE.TEACHER) ? 'حضوري' : PAGES[k].title;
   const navPages = () => Object.keys(PAGES).filter(k => !PAGES[k].hidden && PAGES[k].roles.includes(S.user.role));
 
   function startApp() {
@@ -1730,11 +1810,55 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     main.innerHTML = html`
       <div class="page-head"><div><h1>أهلاً ${S.user.name}</h1><p class="sub">${dWeek.format(toDate(S.today))}</p></div></div>
       ${appHint()}
+      ${d.security ? homeSecurity(d.security) : ''}
       ${d.teaching ? homeTeaching(d.teaching, d.activities, d.courses, comp) : ''}
       ${d.finance ? homeFinance(d.finance, !d.teaching) : ''}
       ${d.teaching ? '' : homeActivities(d.activities)}
       ${d.exams ? homeExams(d.exams) : ''}`;
     prefetchOffline();
+  }
+
+  // تنبيهات الأمان للمدير: إعادة كلمة مرور، ومحاولة على حساب حسّاس، وحسابات كلمتها الأولى
+  function homeSecurity(sec) {
+    if (!sec || (!sec.alerts.length && !sec.firstPass)) return '';
+    return html`<section class="section panel security-box">
+      <div class="section-head"><h2>تنبيهات الأمان</h2>
+        ${sec.alerts.length > 1 ? html`<button class="btn sm ghost" data-act="security-ack-all">تم الاطلاع على الكل</button>` : ''}</div>
+      <div class="list">
+        ${sec.alerts.map(a => html`<div class="row">
+          <span class="row-main"><span class="row-title">${a.kind}${a.userName ? ': ' + a.userName : ''}</span>
+            <span class="row-meta"> ${[a.details, /^\d{4}-\d{2}-\d{2}/.test(a.at) ? fShort(a.at.slice(0, 10)) + (a.at.length > 10 ? ' ' + iso(a.at.slice(11, 16)) : '') : ''].filter(Boolean).join('، ')}</span></span>
+          <button class="btn sm secondary" data-act="security-ack" data-id="${a.id}">تم الاطلاع</button></div>`)}
+        ${sec.firstPass ? html`<a href="#" class="row" data-go="users" data-params="${params({ tab: 'teachers', first: '1' })}">
+          <span class="row-main"><span class="row-title">${fmtN(sec.firstPass)} ${sec.firstPass === 1 ? 'حساب ما زال' : 'حسابات ما زالت'} على كلمة المرور الأولى</span>
+            <span class="row-meta"> عرضها ومتابعة أصحابها</span></span>${chip(fmtN(sec.firstPass), 'warn')}</a>` : ''}
+      </div></section>`;
+  }
+
+  // «تم الاطلاع»: بيختفي التنبيه فوراً وبينبعت للسيرفر (حتى بدون إنترنت)
+  function ackSecurity(id) {
+    mutate('security.ack', id ? { id: idOf(id) } : { all: true }, { label: 'اطّلاع على تنبيه أمني' });
+    patchReads('dashboard', d => { if (d.security) d.security.alerts = id ? d.security.alerts.filter(a => !same(a.id, id)) : []; });
+    commitLocal();
+    refreshView();
+  }
+
+  // خروج ومسح كل ما حُفظ على الجهاز لهذا الحساب (للأجهزة المشتركة أو لما الجهاز بيضيع)
+  async function wipeSignOut() {
+    closeModal();
+    if (outbox.length && online && S.token) await flush();
+    const left = outbox.length + failed.length;
+    const msg = left
+      ? `على هذا الجهاز ${pendingText(left)} لم تصل إلى السيرفر، وستضيع نهائياً إذا مسحت بياناته. هل تريد المسح والخروج؟`
+      : 'سيُمسح كل ما حُفظ على هذا الجهاز من بيانات حسابك، ويحتاج دخولك التالي إليه إلى إنترنت. هل تريد المتابعة؟';
+    if (!await confirmBox(msg, 'مسح وخروج')) return;
+    const uid = S.user.id, username = String(S.user.username || '').trim().toLowerCase();
+    await signOut();
+    local.drop(uid);
+    const idx = userIndex();
+    delete idx[username];
+    if (lastUsername() === username) store.del(LOCAL + 'lastUser');
+    store.set(LOCAL + 'users', JSON.stringify(idx));
   }
 
   // تنبيه بالرئيسية: من رابط جوجل بنوجّه للتطبيق، ومن التطبيق بالمتصفح بنشرح التثبيت
@@ -1779,6 +1903,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const last = t.trend[t.trend.length - 1];
     return html`
       ${pendingExamsBox()}
+      ${pendingNomBox()}
       ${periodCard(t.period, t.halaqat)}
       ${homeCompetition(comp)}
       ${homeActivities(acts)}
@@ -2058,6 +2183,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   }
 
   async function pageExams(main, p, seq) {
+    if (p.tab === 'nominations') return pageNominations(main, p, seq);
     const list = await load('exams.list');
     if (stale(seq)) return;
     const f = { kind: p.kind || '', status: p.status || '', q: p.q || '' };
@@ -2076,6 +2202,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
           ${canInternal() ? html`<button class="btn" data-act="exam-new" data-kind="داخلي">${icon('plus')}اختبار داخلي</button>` : ''}
         </div>
       </div>
+      ${examTabs('exams')}
       <p class="hint" style="margin-bottom:12px">معايير الاختبار الداخلي: العلامة الكاملة ${fmtN(c.total)}، خصم التنبيه ${fmtN(c.hint)}، خصم الخطأ ${fmtN(c.error)}${c.ahkam ? `، علامة الأحكام ${fmtN(c.ahkam)}` : '، دون علامة للأحكام'}.</p>
       <div class="toolbar">
         <label class="field grow"><span>بحث</span><input type="search" id="exQ" placeholder="اسم الطالب أو الحلقة" value="${f.q}" data-input="ex-filter"></label>
@@ -2084,6 +2211,180 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       </div>
       ${shown.length ? examsTable(shown, true, 'exams') : emptyBox(list.length ? 'لا توجد اختبارات مطابقة.' : 'لا توجد اختبارات بعد.')}`;
     if (f.q) { const el = $('#exQ'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
+  }
+
+  /* ═════════ ترشيح الطلاب للاختبارات الخارجية ═════════ */
+  // المحفّظ بيرشّح طالباً من حلقته مع السلسلة، وأمير المرحلة أو المدير بيعتمد الترشيح، وبعدها بيُسجَّل الاختبار نفسه.
+  // بيشتغل بدون إنترنت: الترشيح بيظهر فوراً وبينبعت لما يرجع الاتصال.
+
+  const nomCount = n => (n === 1 ? 'ترشيح واحد' : n === 2 ? 'ترشيحان' : `${fmtN(n)} ${n <= 10 ? 'ترشيحات' : 'ترشيحاً'}`);
+  const NOM_CHIP = { 'معتمد': 'good', 'بانتظار الاعتماد': 'warn', 'مرفوض': 'bad' };
+  const canNominate = () => is(ROLE.ADMIN) || isAmir() || S.halaqat.some(teaches);
+  const canReviewNom = n => n.status === 'بانتظار الاعتماد' && (is(ROLE.ADMIN) || (isAmir() && stageOfStudent(n.studentId) === myStage()));
+  const canEditNom = n => is(ROLE.ADMIN) || (same(n.byUserId, S.user.id) && n.status !== 'معتمد');
+  const findNom = id => (readOf('nominations.list', {}) || []).find(x => same(x.id, id));
+
+  const examTabs = tab => html`<nav class="tabs">
+    <a href="#" class="${tab === 'exams' ? 'active' : ''}" data-go="exams" data-params="${params({ tab: 'exams' })}">الاختبارات</a>
+    <a href="#" class="${tab === 'nominations' ? 'active' : ''}" data-go="exams" data-params="${params({ tab: 'nominations' })}">ترشيحات الاختبارات الخارجية</a></nav>`;
+
+  async function pageNominations(main, p, seq) {
+    const list = await load('nominations.list');
+    if (stale(seq)) return;
+    const f = { status: p.status || '', q: p.q || '' };
+    const q = normAr(f.q);
+    const shown = list.filter(n => (!f.status || n.status === f.status) && (!q || normAr(n.studentName + ' ' + n.halaqaName + ' ' + n.teacherName).includes(q)));
+    S.nomsShown = shown;
+    const pending = list.filter(canReviewNom).length;
+    main.innerHTML = html`
+      <div class="page-head">
+        <div><h1>الاختبارات</h1><p class="sub">ترشيح الطلاب للاختبارات الخارجية: ${list.length ? nomCount(list.length) : 'لا توجد ترشيحات بعد'}${pending ? `، منها ${nomCount(pending)} بانتظار اعتمادك` : ''}</p></div>
+        <div class="ph-actions">
+          ${shown.length ? html`<button class="btn ghost" data-act="export-noms">${icon('download')}تصدير إلى إكسل</button>` : ''}
+          ${canNominate() ? html`<button class="btn" data-act="nom-new">${icon('plus')}ترشيح طالب</button>` : ''}
+        </div>
+      </div>
+      ${examTabs('nominations')}
+      <div class="toolbar">
+        <label class="field grow"><span>بحث</span><input type="search" id="nmQ" placeholder="اسم الطالب أو الحلقة أو المحفّظ" value="${f.q}" data-input="nom-filter"></label>
+        <label class="field"><span>الحالة</span><select id="nmS" data-change="nom-filter"><option value="">الكل</option>${options(['بانتظار الاعتماد', 'معتمد', 'مرفوض'], f.status)}</select></label>
+      </div>
+      ${shown.length ? nomsTable(shown, 'noms') : emptyBox(list.length ? 'لا توجد ترشيحات مطابقة.' : 'لا توجد ترشيحات بعد. يرشّح المحفّظ طلاب حلقته للاختبارات الخارجية من زر «ترشيح طالب».')}`;
+    if (f.q) { const el = $('#nmQ'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
+  }
+
+  function nomsTable(list, key) {
+    const pg = paged(key, list);
+    return html`<div class="table-wrap"><table>
+      <thead><tr><th class="idx">#</th><th>الطالب</th><th>السلسلة</th><th>المحفّظ</th><th>تاريخ الترشيح</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${pg.rows.map((n, i) => html`<tr>
+        <td class="idx">${rowNo(key, i)}</td>
+        <td><strong>${n.studentName}</strong>${n.halaqaName ? html`<small class="cell-sub">${n.halaqaName}</small>` : ''}</td>
+        <td>${examScope(n)}${n.notes ? html`<small class="cell-sub">${n.notes}</small>` : ''}</td>
+        <td>${n.teacherName || '—'}</td><td>${fShort(n.date)}</td>
+        <td>${chip(n.status, NOM_CHIP[n.status])}${n.reviewNote ? html`<small class="cell-sub">${n.reviewNote}</small>` : ''}</td>
+        <td class="actions">${nomActions(n)}</td></tr>`)}</tbody>
+    </table></div>${pg.bar}`;
+  }
+
+  function nomActions(n) {
+    return html`${canReviewNom(n) ? html`<button class="btn sm" data-act="nom-approve" data-id="${n.id}">اعتماد</button>
+      <button class="btn sm ghost danger-text" data-act="nom-reject" data-id="${n.id}">رفض</button>` : ''}
+      ${n.status === 'معتمد' && canExternal() ? html`<button class="btn sm secondary" data-act="nom-result" data-id="${n.id}">تسجيل النتيجة</button>` : ''}
+      ${canEditNom(n) ? html`<button class="icon-btn" data-act="nom-edit" data-id="${n.id}" aria-label="تعديل الترشيح">${icon('edit')}</button>
+      <button class="icon-btn danger" data-act="nom-del" data-id="${n.id}" aria-label="حذف الترشيح">${icon('trash')}</button>` : ''}`;
+  }
+
+  // بالرئيسية للمدير والأمير: عدد الترشيحات اللي بتنتظر اعتماده
+  function pendingNomBox() {
+    const n = (readOf('dashboard', {}) || {}).pendingNominations;
+    if (!n) return '';
+    return html`<div class="notice"><strong>${nomCount(n)} بانتظار اعتمادك</strong> للاختبارات الخارجية.
+      <a href="#" data-go="exams" data-params="${params({ tab: 'nominations', status: 'بانتظار الاعتماد' })}">مراجعتها</a></div>`;
+  }
+
+  function nominationForm(n = {}) {
+    const student = n.studentId ? S.students.find(x => same(x.id, n.studentId)) : null;
+    const hal = student ? S.halaqat.find(h => same(h.id, student.halaqaId)) : null;
+    const teacherId = n.teacherId || (hal && hal.teacherId) || '';
+    const juzOpts = sel => html`${Array.from({ length: 30 }, (_, i) => option(i + 1, `الجزء ${i + 1}`, sel))}`;
+    const form = openModal({
+      title: n.id ? 'تعديل الترشيح' : 'ترشيح طالب لاختبار خارجي',
+      submitLabel: n.id ? 'حفظ التعديلات' : 'حفظ الترشيح',
+      body: html`
+        ${is(ROLE.ADMIN) ? html`<label class="field"><span>المحفّظ</span><select name="teacherPick"><option value="">كل المحفّظين</option>${S.teachers.map(t => option(t.id, t.name, teacherId))}</select></label>` : ''}
+        <label class="field"><span>الطالب</span><select name="studentId" required data-selected="${n.studentId || ''}"></select></label>
+        <div class="field"><span>الترشيح لـ</span><div class="seg" role="radiogroup">
+          <label><input type="radio" name="scope" value="سلسلة" ${n.scope !== 'جزء' ? raw('checked') : ''}><span>سلسلة أجزاء</span></label>
+          <label><input type="radio" name="scope" value="جزء" ${n.scope === 'جزء' ? raw('checked') : ''}><span>جزء واحد</span></label></div></div>
+        <div class="grid2">
+          <label class="field"><span id="juzLabel">من الجزء</span><select name="juzFrom">${juzOpts(n.juzFrom || 30)}</select></label>
+          <label class="field" data-series><span>إلى الجزء</span><select name="juzTo">${juzOpts(n.juzTo || 26)}</select></label>
+        </div>
+        <label class="field"><span>ملاحظات</span><input name="notes" value="${n.notes || ''}" placeholder="اختياري"></label>
+        ${is(ROLE.ADMIN) || isAmir() ? '' : html`<p class="hint">يُرسل الترشيح لاعتماد أمير المرحلة.</p>`}`,
+      onSubmit: async data => {
+        if (!data.studentId) throw new Error('اختر الطالب');
+        const series = data.scope === 'سلسلة';
+        const payload = { studentId: idOf(data.studentId), scope: data.scope, juzFrom: data.juzFrom, juzTo: series ? data.juzTo : '', notes: data.notes };
+        if (series && payload.juzFrom === payload.juzTo) throw new Error('السلسلة يجب أن تتكوّن من أكثر من جزء');
+        const lo = series ? Math.min(+payload.juzFrom, +payload.juzTo) : +payload.juzFrom, hi = series ? Math.max(+payload.juzFrom, +payload.juzTo) : '';
+        const dup = (readOf('nominations.list', {}) || []).find(x => same(x.studentId, payload.studentId) && !same(x.id, n.id) && x.status !== 'مرفوض'
+          && x.scope === payload.scope && +x.juzFrom === lo && String(x.juzTo) === String(hi));
+        if (dup) throw new Error(`هذا الطالب مرشّح بالفعل ل${series ? 'نفس السلسلة' : 'نفس الجزء'}`);
+        const id = n.id || tempId('n');
+        const st = S.students.find(x => same(x.id, payload.studentId)) || {};
+        mutate('nominations.save', Object.assign({}, payload, n.id ? { id } : {}), { tempId: n.id ? '' : id, label: `ترشيح ${st.name || ''}` });
+        localNom(id, payload, n);
+        toast(is(ROLE.ADMIN) || (isAmir() && stageOfStudent(st.id) === myStage()) ? 'حُفظ الترشيح' : 'حُفظ الترشيح وأُرسل للاعتماد');
+        refreshView();
+      },
+    });
+    form.dataset.nom = '1';
+    syncNomForm(form);
+  }
+
+  // الطلاب اللي بيقدر المستخدم يرشّحهم، وخانة نهاية السلسلة
+  function syncNomForm(form) {
+    const sel = form.studentId, cur = sel.value || sel.dataset.selected;
+    const tp = form.teacherPick ? form.teacherPick.value : '';
+    let pool;
+    if (is(ROLE.ADMIN)) pool = S.students.filter(s => !tp || S.halaqat.some(h => same(h.id, s.halaqaId) && same(h.teacherId, tp)));
+    else if (isAmir()) pool = S.students;
+    else pool = S.students.filter(s => S.halaqat.some(h => same(h.id, s.halaqaId) && teaches(h)));
+    pool = pool.filter(s => s.status === 'فعّال' || same(s.id, cur));
+    sel.innerHTML = html`<option value="">اختر الطالب</option>${pool.map(s => option(s.id, s.name + (s.halaqaId ? '، ' + halaqaName(s.halaqaId) : ''), cur))}`;
+    const series = (form.querySelector('input[name=scope]:checked') || {}).value === 'سلسلة';
+    $('[data-series]', form).hidden = !series;
+    $('#juzLabel', form).textContent = series ? 'من الجزء' : 'الجزء';
+  }
+
+  // الترشيح بيظهر فوراً بالقائمة وبعدّاد الرئيسية
+  function localNom(id, p, old) {
+    const st = S.students.find(x => same(x.id, p.studentId)) || {};
+    const h = S.halaqat.find(x => same(x.id, st.halaqaId)) || {};
+    const t = S.teachers.find(x => same(x.id, h.teacherId)) || {};
+    const series = p.scope === 'سلسلة';
+    const lo = Math.min(+p.juzFrom, +(p.juzTo || p.juzFrom)), hi = Math.max(+p.juzFrom, +(p.juzTo || p.juzFrom));
+    const approvedNow = is(ROLE.ADMIN) || (isAmir() && stageOfStudent(st.id) === myStage());
+    const rec = Object.assign({ reviewedBy: '', reviewNote: '' }, old, {
+      id, studentId: st.id, studentName: st.name || '', halaqaId: h.id || '', halaqaName: h.name || '', teacherId: t.id || '', teacherName: t.name || '',
+      scope: p.scope, juzFrom: series ? lo : +p.juzFrom, juzTo: series ? hi : '', date: old.date || S.today, notes: String(p.notes || '').trim(),
+      byUserId: old.byUserId || S.user.id, byUser: old.byUser || S.user.name, status: approvedNow ? 'معتمد' : 'بانتظار الاعتماد',
+    });
+    if (rec.status === 'بانتظار الاعتماد') { rec.reviewedBy = ''; rec.reviewNote = ''; }
+    putNomEverywhere(rec);
+    commitLocal();
+  }
+
+  function putNomEverywhere(rec, removed) {
+    patchReads('nominations.list', list => { const i = list.findIndex(x => same(x.id, rec.id)); if (i >= 0) list.splice(i, 1); if (!removed) list.unshift(rec); });
+    if (!removed && !readOf('nominations.list', {})) putRead(keyOf('nominations.list', {}), [rec]);
+    const list = readOf('nominations.list', {});
+    if (list) patchReads('dashboard', d => { if ('pendingNominations' in d) d.pendingNominations = list.filter(canReviewNom).length; });
+  }
+
+  function reviewNom(id, approve, note) {
+    const n = findNom(id);
+    if (!n) return;
+    mutate('nominations.review', { id: idOf(id), approve, note: note || '' }, { label: (approve ? 'اعتماد' : 'رفض') + ' ترشيح ' + n.studentName });
+    putNomEverywhere(Object.assign({}, n, { status: approve ? 'معتمد' : 'مرفوض', reviewedBy: S.user.name, reviewNote: note || '' }));
+    commitLocal();
+    toast(approve ? 'اعتُمد الترشيح' : 'رُفض الترشيح');
+    refreshView();
+  }
+
+  // تصدير الترشيحات: ورقة لكل حلقة
+  function exportNoms() {
+    const list = S.nomsShown || [];
+    if (!list.length) return nothing('ترشيحات');
+    exportBook(`ترشيحات الاختبارات الخارجية ${S.today}.xlsx`, groupSheets(list, n => n.halaqaName || 'بدون حلقة', (k, items) => ({
+      name: k, title: `ترشيحات الاختبارات الخارجية: ${k}`,
+      subtitle: [items[0].teacherName ? 'المحفّظ: ' + items[0].teacherName : '', `عدد الطلاب المرشّحين: ${items.length}`].filter(Boolean).join('     '),
+      columns: ['تاريخ الترشيح', { label: 'الطالب', name: true }, 'السلسلة', 'المحفّظ', 'الحالة', 'ملاحظات'],
+      rows: items.map(n => [n.date, n.studentName, examScope(n).replace(/[⁦⁩]/g, ''), n.teacherName, n.status,
+        [n.notes, n.reviewNote && 'ملاحظة الاعتماد: ' + n.reviewNote].filter(Boolean).join('، ')]),
+    })));
   }
 
   function criteriaForm() {
@@ -2321,6 +2622,181 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         </table></div>
         <p class="hint">الأجزاء من مقاطع الحفظ في التقارير الشهرية. الاختبارات هي المعتمدة في الفترة، ومتوسط العلامة نسبة من العلامة الكاملة. والأنشطة والدورات هي المخصّصة للحلقة نفسها.</p>`,
     });
+  }
+
+  /* ═════════ حضور وغياب المحفّظين ═════════ */
+  // المدير بيسجّل لكل المحفّظين، وأمير المرحلة لمحفّظي حلقات مرحلته، والمحفّظ بيشوف سجله هو بس.
+  // التسجيل بيظهر فوراً وبيشتغل بدون إنترنت، وبينبعت للسيرفر لما يرجع الاتصال.
+
+  const TATT = [
+    { s: 'حاضر', k: 'p', short: 'ح' },
+    { s: 'متأخر', k: 'l', short: 'ت' },
+    { s: 'غائب', k: 'a', short: 'غ' },
+    { s: 'غائب بعذر', k: 'e', short: 'ع' },
+  ];
+  const TATT_BY = Object.fromEntries(TATT.map(x => [x.s, x]));
+  const daysIn = ym => new Date(+ym.slice(0, 4), +ym.slice(5, 7), 0).getDate();
+  const shiftDay = (ymd, n) => { const d = toDate(ymd); d.setDate(d.getDate() + n); return dayOf(d); };
+
+  // عدد أيام كل حالة لمحفّظ بالشهر، ونسبة الحضور (الحاضر والمتأخر من كل الأيام المسجّلة)
+  function tattTally(d, tid) {
+    const c = { 'حاضر': 0, 'متأخر': 0, 'غائب': 0, 'غائب بعذر': 0 };
+    Object.keys(d.days).forEach(day => { const r = d.days[day][tid]; if (r && r.s in c) c[r.s]++; });
+    const n = c['حاضر'] + c['متأخر'] + c['غائب'] + c['غائب بعذر'];
+    return Object.assign(c, { n, rate: n ? Math.round(((c['حاضر'] + c['متأخر']) / n) * 100) : null });
+  }
+
+  async function pageTAtt(main, p, seq) {
+    const staff = is(ROLE.ADMIN) || isAmir();
+    const view = staff && p.view !== 'month' ? 'day' : 'month';
+    const date = p.date && p.date <= S.today ? p.date : S.today;
+    const month = view === 'day' ? date.slice(0, 7) : (p.month || S.today.slice(0, 7));
+    const d = await load('tattendance.month', { month });
+    if (stale(seq)) return;
+    S.tattData = d;
+    main.innerHTML = html`
+      <div class="page-head">
+        <div><h1>${pageTitle('tattendance')}</h1><p class="sub">${staff ? (isAmir() ? `محفّظو حلقات ${stageName(myStage())}` : 'سجل الحضور والغياب اليومي للمحفّظين') : 'سجل حضورك وغيابك من إدارة المركز'}</p></div>
+      </div>
+      ${staff ? html`<nav class="tabs">
+        <a href="#" class="${view === 'day' ? 'active' : ''}" data-go="tattendance" data-params="${params({ view: 'day' })}">تسجيل اليوم</a>
+        <a href="#" class="${view === 'month' ? 'active' : ''}" data-go="tattendance" data-params="${params({ view: 'month', month: date.slice(0, 7) })}">ملخص الشهر</a></nav>` : ''}
+      ${!d.teachers.length ? emptyBox(staff ? 'لا يوجد محفّظون لتسجيل حضورهم.' : 'لا يوجد سجل لك.')
+        : view === 'day' ? tattDay(d, date) : tattMonthView(d)}`;
+    const form = $('.tatt-form');
+    if (form) updateTAttLeft(form);
+  }
+
+  function tattDay(d, date) {
+    const recs = d.days[date] || {};
+    return html`
+      <div class="toolbar">
+        <button class="btn ghost sm" data-go="tattendance" data-params="${params({ view: 'day', date: shiftDay(date, -1) })}">اليوم السابق</button>
+        <label class="field"><span>اليوم</span><input type="date" value="${date}" max="${S.today}" data-change="tatt-date"></label>
+        <button class="btn ghost sm" ${date >= S.today ? raw('disabled') : ''} data-go="tattendance" data-params="${params({ view: 'day', date: shiftDay(date, 1) })}">اليوم التالي</button>
+        <button type="button" class="btn secondary sm" data-act="tatt-all-present">تحديد الكل حاضراً</button>
+      </div>
+      <p class="sub" style="margin-bottom:12px">${dWeek.format(toDate(date))}</p>
+      <form data-form="tatt" class="tatt-form" data-date="${date}">
+        <div class="panel tatt-list">${d.teachers.map(t => tattRow(t, recs[t.id]))}</div>
+        <div class="savebar"><span id="tattLeft"></span><button class="btn" type="submit">حفظ الحضور</button></div>
+      </form>`;
+  }
+
+  function tattRow(t, r) {
+    const cur = r ? r.s : '', note = r ? r.n : '';
+    return html`<div class="tatt-row" data-tid="${t.id}" data-orig="${cur}" data-orig-note="${note}">
+      <div class="tatt-name"><strong>${t.name}</strong>${t.halaqat ? html`<small>${t.halaqat}</small>` : ''}</div>
+      <div class="seg tatt-seg" role="radiogroup" aria-label="حالة ${t.name}">${TATT.map(x => html`
+        <label class="st-${x.k}"><input type="radio" name="s_${t.id}" value="${x.s}" ${x.s === cur ? raw('checked') : ''}><span>${x.s}</span></label>`)}</div>
+      <input class="tatt-note" value="${note}" placeholder="ملاحظة (اختياري)" maxlength="200" aria-label="ملاحظة ${t.name}">
+      <button type="button" class="link-btn" data-act="tatt-clear">مسح</button>
+    </div>`;
+  }
+
+  function updateTAttLeft(form) {
+    const rows = $$('.tatt-row', form), done = rows.filter(r => r.querySelector('input[type=radio]:checked')).length;
+    const el = $('#tattLeft');
+    if (el) el.textContent = done === rows.length ? `سُجّل حضور جميع المحفّظين (${fmtN(rows.length)})` : `سُجّل ${fmtN(done)} من ${fmtN(rows.length)} محفّظاً`;
+  }
+
+  // يُرسل فقط ما تغيّر عن المحفوظ، والحالة الفاضية بتمسح السجل
+  function submitTAtt(form) {
+    const date = form.dataset.date, entries = [];
+    $$('.tatt-row', form).forEach(row => {
+      const status = (row.querySelector('input[type=radio]:checked') || {}).value || '';
+      const notes = status ? $('.tatt-note', row).value.trim() : '';
+      if (status === row.dataset.orig && notes === row.dataset.origNote) return;
+      entries.push({ teacherId: idOf(row.dataset.tid), status, notes });
+    });
+    if (!entries.length) { form.classList.remove('dirty'); toast('لا توجد تغييرات للحفظ'); return; }
+    mutate('tattendance.save', { date, entries }, { label: 'حضور المحفّظين ' + fDate(date) });
+    localTAtt(date, entries);
+    form.classList.remove('dirty');
+    toast(savedMsg('حُفظ الحضور'));
+    refreshView();
+  }
+
+  // السجل بيظهر فوراً بنسخة الشهر المحفوظة على الجهاز
+  function localTAtt(date, entries) {
+    const month = date.slice(0, 7);
+    patchReads('tattendance.month', d => {
+      if (d.month !== month) return;
+      const day = d.days[date] || (d.days[date] = {});
+      entries.forEach(e => { if (e.status) day[e.teacherId] = { s: e.status, n: e.notes || '' }; else delete day[e.teacherId]; });
+      if (!Object.keys(day).length) delete d.days[date];
+    });
+    commitLocal();
+  }
+
+  function tattMonthView(d) {
+    const staff = d.canRecord, n = daysIn(d.month);
+    const ds = Array.from({ length: n }, (_, i) => d.month + '-' + pad2(i + 1));
+    const tally = d.teachers.map(t => ({ t, c: tattTally(d, t.id) }));
+    const own = staff ? null : tally[0];
+    const thisMonth = S.today.slice(0, 7);
+    const noted = own ? ds.map(day => ({ day, r: (d.days[day] || {})[own.t.id] })).filter(x => x.r && (x.r.s !== 'حاضر' || x.r.n)).reverse() : [];
+    return html`
+      <div class="toolbar">
+        <button class="btn ghost sm" data-go="tattendance" data-params="${params({ view: 'month', month: shiftYM(d.month, -1) })}">الشهر السابق</button>
+        <label class="field"><span>الشهر</span><input type="month" value="${d.month}" max="${thisMonth}" data-change="tatt-month"></label>
+        <button class="btn ghost sm" ${d.month >= thisMonth ? raw('disabled') : ''} data-go="tattendance" data-params="${params({ view: 'month', month: shiftYM(d.month, 1) })}">الشهر التالي</button>
+        <button class="btn secondary sm" data-act="export-tatt">${icon('download')}تصدير إلى إكسل</button>
+      </div>
+      ${own ? html`<div class="stats">
+        ${stat('أيام الحضور', fmtN(own.c['حاضر']), fMonth(d.month))}
+        ${stat('أيام التأخر', fmtN(own.c['متأخر']), '')}
+        ${stat('أيام الغياب', fmtN(own.c['غائب'] + own.c['غائب بعذر']), own.c['غائب بعذر'] ? `منها ${fmtN(own.c['غائب بعذر'])} بعذر` : '')}
+        ${stat('نسبة الحضور', own.c.rate == null ? '—' : P(own.c.rate), own.c.n ? `من ${fmtN(own.c.n)} يوماً مسجّلاً` : 'لا أيام مسجّلة')}
+      </div>` : html`<div class="table-wrap"><table>
+        <thead><tr><th class="idx">#</th><th>المحفّظ</th><th class="num">حاضر</th><th class="num">متأخر</th><th class="num">غائب</th><th class="num">غائب بعذر</th><th class="num">الأيام المسجّلة</th><th class="num">نسبة الحضور</th></tr></thead>
+        <tbody>${tally.map(({ t, c }, i) => html`<tr><td class="idx">${i + 1}</td>
+          <td><strong>${t.name}</strong>${t.halaqat ? html`<small class="cell-sub">${t.halaqat}</small>` : ''}</td>
+          <td class="num">${fmtN(c['حاضر'])}</td><td class="num">${fmtN(c['متأخر'])}</td>
+          <td class="num">${c['غائب'] ? chip(fmtN(c['غائب']), 'bad') : '0'}</td><td class="num">${fmtN(c['غائب بعذر'])}</td>
+          <td class="num">${fmtN(c.n)}</td><td class="num">${c.rate == null ? '—' : P(c.rate)}</td></tr>`)}</tbody>
+      </table></div>`}
+      <section class="section">
+        <div class="section-head"><h2>جدول أيام الشهر</h2>
+          <p class="tatt-legend">${TATT.map(x => html`<span class="tatt-key m-${x.k}">${x.short}</span> ${x.s}`)}</p></div>
+        <div class="tatt-matrix" role="region" aria-label="جدول حضور الشهر" tabindex="0"><table>
+          <thead><tr><th>المحفّظ</th>${ds.map((day, i) => html`<th class="${day === S.today ? 'today' : ''}${toDate(day).getDay() === 5 ? ' fri' : ''}" title="${dWeek.format(toDate(day))}">${fmtN(i + 1)}</th>`)}</tr></thead>
+          <tbody>${d.teachers.map(t => html`<tr><th>${t.name}</th>${ds.map(day => {
+            const r = (d.days[day] || {})[t.id], x = r && TATT_BY[r.s];
+            const go = staff && day <= S.today ? raw(`data-go="tattendance" data-params='${JSON.stringify({ view: 'day', date: day })}'`) : '';
+            return x ? html`<td class="m-${x.k}" title="${r.s}${r.n ? '، ' + r.n : ''}" ${go}>${x.short}</td>` : html`<td ${go}></td>`;
+          })}</tr>`)}</tbody>
+        </table></div>
+      </section>
+      ${own ? html`<section class="section">
+        <div class="section-head"><h2>الأيام التي فيها غياب أو ملاحظة</h2></div>
+        ${noted.length ? html`<div class="list">${noted.map(({ day, r }) => html`<div class="row">
+          <span class="row-main"><span class="row-title">${fDate(day)}</span>${r.n ? html`<span class="row-meta"> ${r.n}</span>` : ''}</span>
+          ${chip(r.s, r.s === 'حاضر' ? 'good' : r.s === 'متأخر' ? 'warn' : r.s === 'غائب' ? 'bad' : '')}</div>`)}</div>`
+          : html`<p class="muted">لا غياب ولا ملاحظات هذا الشهر.</p>`}</section>` : ''}`;
+  }
+
+  // تصدير الشهر: ملخص لكل محفّظ، وجدول الأيام (ح ت غ ع)، والسجل بالتفصيل
+  function exportTAtt() {
+    const d = S.tattData;
+    if (!d || !d.teachers.length) return nothing('محفّظين');
+    const n = daysIn(d.month), ds = Array.from({ length: n }, (_, i) => d.month + '-' + pad2(i + 1));
+    const tally = d.teachers.map(t => ({ t, c: tattTally(d, t.id) }));
+    const sum = k => tally.reduce((a, x) => a + x.c[k], 0);
+    const sub = `${fMonth(d.month)}     عدد المحفّظين: ${d.teachers.length}`;
+    const title = 'حضور وغياب المحفّظين';
+    const log = [];
+    ds.forEach(day => d.teachers.forEach(t => { const r = (d.days[day] || {})[t.id]; if (r) log.push([day, WEEKDAYS[toDate(day).getDay()], t.name, r.s, r.n]); }));
+    exportBook(`${title} ${d.month}.xlsx`, [
+      { name: 'ملخص الشهر', title, subtitle: sub,
+        columns: [{ label: 'المحفّظ', name: true }, 'الحلقة', 'حاضر', 'متأخر', 'غائب', 'غائب بعذر', 'الأيام المسجّلة', 'نسبة الحضور %'],
+        rows: tally.map(({ t, c }) => [t.name, t.halaqat, c['حاضر'], c['متأخر'], c['غائب'], c['غائب بعذر'], c.n, c.rate == null ? '' : c.rate]),
+        foot: ['المجموع', '', sum('حاضر'), sum('متأخر'), sum('غائب'), sum('غائب بعذر'), sum('n')] },
+      { name: 'جدول الأيام', title, subtitle: sub + '     ح حاضر، ت متأخر، غ غائب، ع غائب بعذر',
+        columns: [{ label: 'المحفّظ', name: true }].concat(ds.map((x, i) => String(i + 1))),
+        rows: d.teachers.map(t => [t.name].concat(ds.map(day => { const r = (d.days[day] || {})[t.id]; return r ? TATT_BY[r.s].short : ''; }))) },
+      { name: 'السجل التفصيلي', title, subtitle: sub, columns: ['التاريخ', 'اليوم', { label: 'المحفّظ', name: true }, 'الحالة', 'ملاحظات'], rows: log },
+    ]);
   }
 
   /* ═════════ الدورات ═════════ */
@@ -3180,9 +3656,185 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         if (!e.offline) throw e;
       }
     }
-    mutate(action, payload, { label });
+    // بدون إنترنت: الكشف بينحفظ ليتنفّذ لاحقاً، وبيظهر هون فوراً كنسخة مؤقتة
+    const imp = { ids: [] };
+    try { localImport(action, payload, imp.ids); } catch (e) { console.error(e); }
+    mutate(action, payload, { label, imp });
     toast('حُفظ الكشف');
+    refreshView();
     return null;
+  }
+
+  /* ═════════ الكشوف المستوردة بدون إنترنت ═════════ */
+  // قواعد الاستيراد المعتمدة على السيرفر، وهو اللي بينفّذ الكشف لما يرجع الإنترنت.
+  // هون بنعرض نسخة مؤقتة (أرقامها بتبدأ بـ ~) حتى يشوف المستخدم أثر الكشف فوراً، وبتنشال أول ما ينبعت الكشف.
+  const nameKey = s => normAr(String(s == null ? '' : s).replace(/ـ/g, '').replace(/\s+/g, ' '));
+  const nonEmpty = o => { const r = {}; Object.keys(o).forEach(k => { if (o[k] !== '' && o[k] != null) r[k] = o[k]; }); return r; };
+  const pendingImportIds = () => { const s = new Set(); outbox.forEach(o => { if (o.imp && o.imp.ids) o.imp.ids.forEach(id => s.add(id)); }); return s; };
+
+  // بيشيل النسخ المؤقتة من كل مكان محفوظ على الجهاز
+  function dropTemp(ids) {
+    const set = new Set(ids.map(String));
+    if (!set.size) return;
+    const strip = v => {
+      if (Array.isArray(v)) {
+        for (let i = v.length - 1; i >= 0; i--) {
+          const x = v[i];
+          if (x && typeof x === 'object' && !Array.isArray(x) && set.has(String(x.id))) v.splice(i, 1); else strip(x);
+        }
+      } else if (v && typeof v === 'object') Object.keys(v).forEach(k => strip(v[k]));
+    };
+    const keyHit = k => String(k).split('|').slice(1).join('|').split('&').some(part => set.has(part.split('=')[1]));
+    [...reads.keys()].forEach(k => { if (keyHit(k)) reads.delete(k); else strip(reads.get(k).v); });
+    [S.students, S.halaqat, S.teachers, S.usersCache].forEach(strip);
+    commitLocal();
+  }
+
+  function importDone(o) {
+    dropTemp(o.imp.ids || []);
+    local.set('packedAt', 0); // كل الصفحات بتنجاب من جديد بعد المزامنة
+  }
+
+  function localImport(action, payload, ids) {
+    bulkLocal++;
+    try {
+      if (action === 'students.import') localImportStudents(payload, ids);
+      else if (action === 'users.import') localImportTeachers(payload, ids);
+      else if (action === 'finance.import') localImportFinance(payload, ids);
+    } finally { bulkLocal--; }
+    commitLocal();
+  }
+
+  function localImportStudents(p, ids) {
+    const fixed = p.halaqaId ? S.halaqat.find(x => same(x.id, p.halaqaId)) : null;
+    const users = readOf('users.list', {}) || S.usersCache || [];
+    const digits = v => toLatin(v).replace(/\D/g, '');
+    const halaqaOfTeacher = (name, nid) => {
+      const t = users.find(u => u.role === ROLE.TEACHER && ((nid && u.nationalId === nid) || (!nid && nameKey(u.name) === nameKey(name))));
+      const h = t && S.halaqat.find(x => same(x.teacherId, t.id));
+      return h ? h.id : '';
+    };
+    const known = new Map();
+    S.students.forEach(s => known.set(s.nationalId ? 'i' + s.nationalId : 'n' + nameKey(s.name), s));
+    (p.rows || []).forEach(r => {
+      const name = String(r.name || '').trim().replace(/\s+/g, ' ');
+      if (!name) return;
+      const nid = digits(r.nationalId);
+      const data = { name, nationalId: nid, birthDate: r.birthDate, stage: r.stage, guardianPhone: r.guardianPhone, guardianId: r.guardianId,
+        guardianName: r.guardianName, guardianRelation: r.guardianRelation, juzCount: r.juzCount, lastAchievement: r.lastAchievement,
+        sardJuz: r.sardJuz, sardDetails: r.sardDetails, area: r.area, notes: r.notes,
+        halaqaId: fixed ? fixed.id : halaqaOfTeacher(r.teacherName, digits(r.teacherNationalId)) };
+      const key = nid ? 'i' + nid : 'n' + nameKey(name), old = known.get(key);
+      if (old) { localStudent(old.id, Object.assign({}, old, nonEmpty(data)), true); return; }
+      const id = tempId('s');
+      ids.push(id);
+      localStudent(id, data, true);
+      known.set(key, { id, name, nationalId: nid });
+    });
+  }
+
+  function localImportTeachers(p, ids) {
+    const users = (readOf('users.list', {}) || S.usersCache || []).slice();
+    const keys = ['mosque', 'juzCount', 'maritalStatus', 'workType', 'kafalaNote', 'birthDate', 'job', 'housing', 'bank', 'wallet', 'payPhone', 'course'];
+    (p.rows || []).forEach(r => {
+      const name = String(r.name || '').trim().replace(/\s+/g, ' ');
+      if (!name) return;
+      const nid = toLatin(r.nationalId).replace(/\D/g, '');
+      const data = { name, nationalId: nid, phone: r.phone };
+      keys.forEach(k => { data[k] = r[k]; });
+      const clean = nonEmpty(data);
+      const old = users.find(u => (nid && u.nationalId === nid) || (!nid && nameKey(u.name) === nameKey(name)));
+      if (old) { localUser(old.id, Object.assign({}, old, clean), old); return; }
+      const id = tempId('u');
+      ids.push(id);
+      // حساب جديد: فعّال إذا في رقم هوية (اسم المستخدم وكلمة المرور الأولى)
+      localUser(id, Object.assign({ role: ROLE.TEACHER, active: nid.length >= 6 }, clean), {});
+      users.push({ id, name, nationalId: nid });
+    });
+  }
+
+  function localImportFinance(p, ids) {
+    const sponsors = (readOf('sponsors.list', {}) || S.sponsorsCache || []).slice();
+    const kafalat = (readOf('kafalat.list', {}) || S.kafalatCache || []).slice();
+    const txs = readOf('transactions.list', { month: 'all' }) || [];
+    const byName = list => { const m = new Map(); list.forEach(x => { const k = nameKey(x.name); if (k && !m.has(k)) m.set(k, x); }); return m; };
+    const sp = byName(sponsors), stu = byName(S.students), tea = byName(S.teachers), hal = byName(S.halaqat);
+    const num = v => Number(toLatin(v));
+    const newSponsor = (name, extra) => {
+      const id = tempId('sp');
+      ids.push(id);
+      const rec = localSponsor(id, Object.assign({ name: String(name).trim(), phone: '', notes: '' }, extra));
+      sponsors.push(rec);
+      sp.set(nameKey(name), rec);
+      return rec;
+    };
+    const sponsorOf = name => (nameKey(name) ? sp.get(nameKey(name)) || newSponsor(name) : null);
+    const txKey = (date, type, amount, who, receipt) => [date, type, Number(amount), nameKey(who), String(receipt || '').trim()].join('|');
+    const seen = new Set(txs.map(t => txKey(t.date, t.type, t.amount, t.sponsorName || t.beneficiaryName, t.receipt)));
+    const kseen = new Set(kafalat.map(k => [k.sponsorId, k.kind, k.beneficiaryId, k.startDate].join('|')));
+
+    (p.rows || []).forEach(r => {
+      if (p.kind === 'sponsors') {
+        if (!nameKey(r.name)) return;
+        const old = sp.get(nameKey(r.name));
+        if (!old) { newSponsor(r.name, { phone: r.phone, notes: r.notes }); return; }
+        const phone = toLatin(r.phone).replace(/[^\d+]/g, '') || old.phone || '', notes = String(r.notes || '').trim() || old.notes || '';
+        if (phone !== (old.phone || '') || notes !== (old.notes || '')) sp.set(nameKey(r.name), localSponsor(old.id, { name: old.name, phone, notes }, old));
+        return;
+      }
+      if (p.kind === 'kafalat') {
+        const spn = sponsorOf(r.sponsorName);
+        if (!spn) return;
+        const ben = String(r.beneficiaryName || '').trim(), bk = nameKey(ben);
+        let kind = String(r.kind || '').trim().replace(/^محفّظ$/, 'محفظ');
+        if (!kind) kind = !ben || /^(كفالة )?عامة$/.test(ben) ? 'عامة' : stu.has(bk) ? 'طالب' : tea.has(bk) ? 'محفظ' : hal.has(bk) ? 'حلقة' : '';
+        const b = kind === 'طالب' ? stu.get(bk) : kind === 'محفظ' ? tea.get(bk) : kind === 'حلقة' ? hal.get(bk) : null;
+        if (!kind || (kind !== 'عامة' && !b) || !(num(r.monthly) > 0) || !r.startDate) return;
+        const dupKey = [spn.id, kind, b ? b.id : '', r.startDate].join('|');
+        if (kseen.has(dupKey)) return;
+        kseen.add(dupKey);
+        const id = tempId('k');
+        ids.push(id);
+        kafalat.push(localKafala(id, { kind, beneficiaryId: b ? b.id : '', monthly: r.monthly, startDate: r.startDate, endDate: r.endDate, active: r.active !== false, notes: r.notes }, {}, spn));
+        return;
+      }
+      // الحركات المالية
+      const type = String(r.type || p.type || '').trim();
+      const amount = num(r.amount);
+      if (!S.lists.txTypes.includes(type) || !(amount > 0) || !r.date) return;
+      const party = String(r.party || '').trim();
+      const data = { type, date: r.date, category: r.category, method: r.method, receipt: r.receipt, notes: r.notes };
+      let who = '';
+      if (type === 'مكافأة') {
+        const st = stu.get(nameKey(party)), te = tea.get(nameKey(party));
+        const kind = r.beneficiaryKind === 'محفظ' || (!st && te) ? 'محفظ' : 'طالب';
+        const b = kind === 'طالب' ? st : te;
+        if (!b) return;
+        Object.assign(data, { beneficiaryKind: kind, beneficiaryId: b.id });
+        who = b.name;
+      } else if (type === 'دفعة كفالة') {
+        const spn = sp.get(nameKey(party));
+        if (!spn) return;
+        const mine = kafalat.filter(k => same(k.sponsorId, spn.id)), act = mine.filter(k => k.active);
+        const fit = act.filter(k => k.monthly > 0 && amount % k.monthly === 0);
+        const kf = act.length === 1 ? act[0] : fit.length === 1 ? fit[0] : mine.length === 1 ? mine[0] : null;
+        if (!kf) return;
+        data.kafalaId = kf.id;
+        who = spn.name;
+      } else if (type === 'مصروف') {
+        if (party) data.notes = [data.notes, 'الجهة: ' + party].filter(Boolean).join('، ');
+      } else if (party && !/^فاعل خير$/.test(party)) {
+        const spn = sponsorOf(party);
+        data.sponsorId = spn.id;
+        who = spn.name;
+      }
+      const dup = txKey(data.date, type, amount, who, data.receipt);
+      if (seen.has(dup)) return;
+      seen.add(dup);
+      const id = tempId('t');
+      ids.push(id);
+      localTx(id, data, amount, sponsors, kafalat, {});
+    });
   }
 
   function renderImportPreview(textarea) {
@@ -3953,15 +4605,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         const id = k.id || tempId('k');
         const sp = sponsors.find(x => same(x.id, data.sponsorId)) || {};
         mutate('kafalat.save', Object.assign({}, data, k.id ? { id } : {}), { tempId: k.id ? '' : id, label: `كفالة ${sp.name || ''}` });
-        const src = data.kind === 'طالب' ? S.students : data.kind === 'محفظ' ? S.teachers : data.kind === 'حلقة' ? S.halaqat : [];
-        const ben = data.kind === 'عامة' ? null : src.find(x => same(x.id, data.beneficiaryId));
-        const rec = Object.assign({ months: 0, due: 0, paid: 0, arrears: 0 }, k, {
-          id, sponsorId: sp.id, sponsorName: sp.name || '', sponsorPhone: sp.phone || k.sponsorPhone || '', kind: data.kind,
-          beneficiaryId: ben ? ben.id : '', beneficiaryName: ben ? ben.name : 'عامة', monthly, startDate: data.startDate,
-          endDate: data.endDate || '', active: data.active !== false, notes: String(data.notes || '').trim(),
-        });
-        patchReads('kafalat.list', list => upsert(list, rec));
-        commitLocal();
+        localKafala(id, data, k, sp);
         toast(savedMsg('حُفظت الكفالة'));
         refreshView();
       },
@@ -3989,14 +4633,34 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       onSubmit: async data => {
         const id = s.id || tempId('sp');
         mutate('sponsors.save', Object.assign({}, data, s.id ? { id } : {}), { tempId: s.id ? '' : id, label: (s.id ? 'تعديل بيانات ' : 'إضافة ') + data.name });
-        const rec = Object.assign({ given: 0, activeKafalat: 0, arrears: 0 }, s, { id, name: String(data.name).trim(), phone: toLatin(data.phone).replace(/[^\d+]/g, ''), notes: String(data.notes || '').trim() });
-        patchReads('sponsors.list', list => upsert(list, rec));
-        patchReads('kafalat.list', list => list.forEach(k => { if (same(k.sponsorId, id)) Object.assign(k, { sponsorName: rec.name, sponsorPhone: rec.phone }); }));
-        commitLocal();
+        localSponsor(id, data, s);
         toast(savedMsg('حُفظت بيانات الكافل'));
         refreshView();
       },
     });
+  }
+
+  // الكافل بيظهر فوراً بالقوائم (بالنموذج وبالكشف المستورد بدون إنترنت)
+  function localSponsor(id, data, s = {}) {
+    const rec = Object.assign({ given: 0, activeKafalat: 0, arrears: 0 }, s, { id, name: String(data.name).trim(), phone: toLatin(data.phone).replace(/[^\d+]/g, ''), notes: String(data.notes || '').trim() });
+    patchReads('sponsors.list', list => upsert(list, rec));
+    patchReads('kafalat.list', list => list.forEach(k => { if (same(k.sponsorId, id)) Object.assign(k, { sponsorName: rec.name, sponsorPhone: rec.phone }); }));
+    commitLocal();
+    return rec;
+  }
+
+  function localKafala(id, data, k, sp) {
+    const monthly = Number(toLatin(data.monthly));
+    const src = data.kind === 'طالب' ? S.students : data.kind === 'محفظ' ? S.teachers : data.kind === 'حلقة' ? S.halaqat : [];
+    const ben = data.kind === 'عامة' ? null : src.find(x => same(x.id, data.beneficiaryId));
+    const rec = Object.assign({ months: 0, due: 0, paid: 0, arrears: 0 }, k, {
+      id, sponsorId: sp.id, sponsorName: sp.name || '', sponsorPhone: sp.phone || k.sponsorPhone || '', kind: data.kind,
+      beneficiaryId: ben ? ben.id : '', beneficiaryName: ben ? ben.name : 'عامة', monthly, startDate: data.startDate,
+      endDate: data.endDate || '', active: data.active !== false, notes: String(data.notes || '').trim(),
+    });
+    patchReads('kafalat.list', list => upsert(list, rec));
+    commitLocal();
+    return rec;
   }
 
   function showReceipt(t) {
@@ -4114,9 +4778,17 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     S.usersCache = users;
     const admin = is(ROLE.ADMIN);
     const tab = admin ? p.tab || 'teachers' : 'teachers';
-    const teachers = teachersOf(users);
-    const others = users.filter(u => !teachers.includes(u)); // المدير والمحاسب والأمير اللي مش محفّظ
-    const tabs = [['teachers', `المحفّظون (${teachers.length})`], ['accounts', `الحسابات الأخرى (${others.length})`], ['org', 'الهيكلية الإدارية']];
+    const allTeachers = teachersOf(users);
+    const allOthers = users.filter(u => !allTeachers.includes(u)); // المدير والمحاسب والأمير اللي مش محفّظ
+    // حسابات ما غيّرت كلمة المرور الأولى (رقم الهوية): من يعرف الرقم بيقدر يدخل بها، فالمدير بيتابع أصحابها
+    const stuck = u => u.active && u.mustChange;
+    const stuckCount = admin ? users.filter(stuck).length : 0;
+    const first = admin && p.first === '1';
+    const teachers = first ? allTeachers.filter(stuck) : allTeachers;
+    const others = first ? allOthers.filter(stuck) : allOthers;
+    const tabs = [['teachers', `المحفّظون (${allTeachers.length})`], ['accounts', `الحسابات الأخرى (${allOthers.length})`], ['org', 'الهيكلية الإدارية']];
+    const pwChip = u => (stuck(u) ? html` ${chip('كلمة المرور الأولى', 'warn')}` : '');
+    const remind = u => (stuck(u) && u.phone ? html`<a class="icon-btn" href="${waLink(u.phone, `السلام عليكم ${u.name}، حسابك في ${S.settings.orgName} ما زال على كلمة المرور الأولى (رقم الهوية). يرجى الدخول إلى النظام وتغيير كلمة المرور حفاظاً على حسابك. جزاكم الله خيراً.`)}" target="_blank" rel="noopener" aria-label="تذكير بتغيير كلمة المرور عبر واتساب" data-tip="تذكير بتغيير كلمة المرور">${icon('chat')}</a>` : '');
     const delBtn = u => same(u.id, S.user.id) ? '' : html`<button class="icon-btn danger" data-act="user-del" data-id="${u.id}" data-name="${u.name}" aria-label="حذف">${icon('trash')}</button>`;
     main.innerHTML = html`
       <div class="page-head">
@@ -4130,6 +4802,9 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
               <button class="btn" data-act="user-new">${icon('plus')}إضافة مستخدم</button>`}</div>
       </div>
       ${admin ? html`<nav class="tabs">${tabs.map(t => html`<a href="#" class="${t[0] === tab ? 'active' : ''}" data-go="users" data-params="${params({ tab: t[0] })}">${t[1]}</a>`)}</nav>` : ''}
+      ${stuckCount && tab !== 'org' ? html`<div class="notice"><strong>${fmtN(stuckCount)} ${stuckCount === 1 ? 'حساب لم يغيّر' : 'حسابات لم تغيّر'} كلمة المرور الأولى</strong> (رقم الهوية).
+        من يعرف رقم الهوية يستطيع الدخول بها، فتابع أصحابها من زر واتساب بجانب كل حساب.
+        <a href="#" data-go="users" data-params="${params(first ? { tab } : { tab, first: '1' })}">${first ? 'عرض كل الحسابات' : 'عرضهم فقط'}</a></div>` : ''}
       ${tab === 'teachers' ? (teachers.length ? html`<div class="table-wrap"><table>
         <thead><tr><th class="idx">#</th><th>اسم المحفّظ</th><th>رقم الجوال</th><th>الحلقة</th><th class="num">أجزاء الحفظ</th><th>طبيعة العمل</th><th>الكفالة</th>${admin ? html`<th>الحساب</th><th></th>` : ''}</tr></thead>
         <tbody>${paged('teachers', teachers).rows.map((u, i) => html`<tr class="click" data-go="teacher" data-params="${params({ id: u.id })}"><td class="idx">${rowNo('teachers', i)}</td>
@@ -4137,8 +4812,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
           <td>${u.phone ? html`<span class="ltr">${u.phone}</span>` : '—'}</td>
           <td>${halaqaOf(u.id) || html`<span class="muted">بدون حلقة</span>`}</td>
           <td class="num">${u.juzCount || '—'}</td><td>${u.workType || '—'}</td><td>${u.kafalaNote || '—'}</td>
-          ${admin ? html`<td>${u.active ? chip('فعّال', 'good') : chip('معطّل', 'warn')}</td>
-          <td class="actions"><button class="icon-btn" data-act="user-edit" data-id="${u.id}" aria-label="تعديل">${icon('edit')}</button>${delBtn(u)}</td>` : ''}</tr>`)}</tbody>
+          ${admin ? html`<td>${u.active ? chip('فعّال', 'good') : chip('معطّل', 'warn')}${pwChip(u)}</td>
+          <td class="actions">${remind(u)}<button class="icon-btn" data-act="user-edit" data-id="${u.id}" aria-label="تعديل">${icon('edit')}</button>${delBtn(u)}</td>` : ''}</tr>`)}</tbody>
       </table></div>${paged('teachers', teachers).bar}` : emptyBox(admin ? 'لا يوجد محفّظون بعد. أضفهم واحداً تلو الآخر، أو استورد كشفهم من إكسل.' : 'لا يوجد محفّظون لحلقات مرحلتك.'))
       : tab === 'org' ? orgChart(users)
       : html`<p class="sub" style="margin-bottom:12px">يطّلع المدير على جميع البيانات، والمحفّظ على حلقاته فقط، وأمير المرحلة على طلاب مرحلته وحلقاتهم ومحفّظيها (ويعبّئ تقرير حلقته إذا كان محفّظاً لها)، والمحاسب على المالية.</p>
@@ -4146,8 +4821,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         <thead><tr><th class="idx">#</th><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>رقم الجوال</th><th>الحالة</th><th></th></tr></thead>
         <tbody>${paged('accounts', others).rows.map((u, i) => html`<tr class="click" data-go="teacher" data-params="${params({ id: u.id })}"><td class="idx">${rowNo('accounts', i)}</td>
           <td>${u.name}</td><td><span class="ltr">${u.username}</span></td><td>${chip(u.role, u.role === ROLE.ADMIN ? 'gold' : u.role === ROLE.TEACHER || AMIRS.includes(u.role) ? 'green' : '')}</td>
-          <td>${u.phone ? html`<span class="ltr">${u.phone}</span>` : '—'}</td><td>${u.active ? chip('فعّال', 'good') : chip('معطّل', 'warn')}</td>
-          <td class="actions"><button class="icon-btn" data-act="user-edit" data-id="${u.id}" aria-label="تعديل">${icon('edit')}</button>${delBtn(u)}</td></tr>`)}</tbody>
+          <td>${u.phone ? html`<span class="ltr">${u.phone}</span>` : '—'}</td><td>${u.active ? chip('فعّال', 'good') : chip('معطّل', 'warn')}${pwChip(u)}</td>
+          <td class="actions">${remind(u)}<button class="icon-btn" data-act="user-edit" data-id="${u.id}" aria-label="تعديل">${icon('edit')}</button>${delBtn(u)}</td></tr>`)}</tbody>
       </table></div>${paged('accounts', others).bar}`}`;
   }
 
@@ -4204,6 +4879,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         </div>
         <label class="field"><span>جوال</span><input name="payPhone" dir="ltr" inputmode="tel" value="${u.payPhone || ''}"></label>`,
       onSubmit: async data => {
+        // كلمة مرورك أنت بتغيّرها من «تغيير كلمة المرور» (بتتأكد من كلمتك الحالية)
+        if (u.id && same(u.id, S.user.id) && (data.password || data.resetToId)) throw new Error('غيّر كلمة مرورك أنت من «تغيير كلمة المرور» في القائمة.');
         const nid = toLatin(data.nationalId).replace(/\D/g, '');
         const dup = nid && (S.usersCache || []).find(x => (x.username === nid || x.nationalId === nid) && !same(x.id, u.id));
         if (dup) throw new Error(`رقم الهوية ${nid} مستخدم في حساب «${dup.name}»`);
@@ -4291,6 +4968,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         }
         S.user.mustChange = false;
         saveBoot();
+        // بصمة الدخول بدون إنترنت لازم تتبدّل بالكلمة الجديدة، وإلا بتقبل القديمة وبترفض الجديدة
+        await savePassPrint(S.user.id, S.user.username, data.next);
         toast('تغيّرت كلمة المرور');
       },
     });
@@ -4305,7 +4984,9 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         ${pages.map(k => html`<a href="#" data-go="${k}">${icon(PAGES[k].icon)}${pageTitle(k)}</a>`)}
         ${installCtl('', API_URL ? 'تثبيت التطبيق على هذا الجهاز' : 'فتح النظام كتطبيق (يعمل دون إنترنت)')}
         <button data-act="password">${icon('lock')}تغيير كلمة المرور</button>
+        <button data-act="logout-others">${icon('logout')}الخروج من الأجهزة الأخرى</button>
         <button data-act="logout">${icon('logout')}تسجيل الخروج</button>
+        <button data-act="logout-wipe" class="danger-link">${icon('trash')}خروج ومسح بيانات هذا الجهاز</button>
       </div>
       <div class="pack-box"><p id="packStatus">${packStatusText()}</p>
         <button type="button" class="btn sm secondary" id="packNow" data-act="pack-now" ${S.pack || !online ? raw('disabled') : ''}>تجهيز الآن</button></div>
@@ -4699,10 +5380,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     if (!list.length) { toast('لا يوجد محفّظون للتصدير', 'error'); return; }
     const pay = is(ROLE.ADMIN);
     const cols = [{ label: 'اسم المحفظ', name: true }, 'عدد أجزاء الحفظ', 'الحالة الاجتماعية', 'طبيعة العمل في المركز', 'الكفالة',
-      'تاريخ الميلاد', 'رقم الهوية', 'رقم الجوال', 'العمل', 'وضع البيت'].concat(pay ? ['بنك', 'محفظة', 'جوال'] : [], ['الدورة المتقنة', 'الحلقة']);
+      'تاريخ الميلاد', 'رقم الهوية', 'رقم الجوال', 'العمل', 'وضع البيت'].concat(pay ? ['بنك', 'محفظة', 'جوال'] : [], ['الدورة المتقنة', 'الحلقة'], pay ? ['كلمة المرور'] : []);
     exportBook(`المحفظون ${S.today}.xlsx`, [{ name: 'المحفظون', title: 'كشف المحفّظين', subtitle: `عدد المحفّظين: ${list.length}`, columns: cols,
       rows: list.map(u => [u.name, xnum(u.juzCount), u.maritalStatus, u.workType, u.kafalaNote,
-        u.birthDate, u.nationalId, u.phone, u.job, u.housing].concat(pay ? [u.bank, u.wallet, u.payPhone] : [], [u.course, halaqaOf(u.id)])) }]);
+        u.birthDate, u.nationalId, u.phone, u.job, u.housing].concat(pay ? [u.bank, u.wallet, u.payPhone] : [], [u.course, halaqaOf(u.id)], pay ? [u.active && u.mustChange ? 'الأولى (لم تُغيَّر)' : 'مُغيَّرة'] : [])) }]);
   }
 
   const REPORT_COLS = ['من سورة', 'من آية', 'إلى سورة', 'إلى آية', 'عدد الآيات'];
@@ -4764,8 +5445,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const list = users.filter(u => !teachers.includes(u));
     if (!list.length) return nothing('حسابات');
     exportBook(`الحسابات ${S.today}.xlsx`, [{ name: 'الحسابات', title: 'الحسابات الأخرى', subtitle: `عدد الحسابات: ${list.length}`,
-      columns: [{ label: 'الاسم', name: true }, 'اسم المستخدم', 'الدور', 'رقم الجوال', 'الحالة'],
-      rows: list.map(u => [u.name, u.username, u.role, u.phone, u.active ? 'فعّال' : 'معطّل']) }]);
+      columns: [{ label: 'الاسم', name: true }, 'اسم المستخدم', 'الدور', 'رقم الجوال', 'الحالة', 'كلمة المرور'],
+      rows: list.map(u => [u.name, u.username, u.role, u.phone, u.active ? 'فعّال' : 'معطّل', u.active && u.mustChange ? 'الأولى (لم تُغيَّر)' : 'مُغيَّرة']) }]);
   }
 
   // ملف الطالب: بياناته، وتقاريره، واختباراته، ومكافآته
@@ -5120,6 +5801,31 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     'finance-import': el => financeImportForm(el.dataset.tab),
     'finance-export': () => financeExportForm(),
     'export-competition': () => exportCompetition(),
+    'export-tatt': () => exportTAtt(),
+    'security-ack': el => ackSecurity(el.dataset.id),
+    'security-ack-all': () => ackSecurity(''),
+    'logout-wipe': () => wipeSignOut(),
+    'logout-others': async () => {
+      closeModal();
+      try {
+        await call('me.logoutAll');
+        toast('خرج حسابك من كل الأجهزة الأخرى');
+      } catch (e) { toast(e.offline ? 'هذا الإجراء يحتاج إلى اتصال بالإنترنت.' : e.message, 'error'); }
+    },
+    'tatt-all-present': el => {
+      const form = el.closest('main, #main').querySelector('.tatt-form');
+      if (!form) return;
+      $$('.tatt-row', form).forEach(row => { if (!row.querySelector('input[type=radio]:checked')) row.querySelector('input[value="حاضر"]').checked = true; });
+      form.classList.add('dirty');
+      updateTAttLeft(form);
+    },
+    'tatt-clear': el => {
+      const row = el.closest('.tatt-row'), form = el.closest('form');
+      $$('input[type=radio]', row).forEach(r => { r.checked = false; });
+      $('.tatt-note', row).value = '';
+      form.classList.add('dirty');
+      updateTAttLeft(form);
+    },
     'password': () => passwordForm(),
     'account': () => accountSheet(false),
     'more': () => accountSheet(true),
@@ -5227,6 +5933,28 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       });
     },
     'exam-criteria': () => criteriaForm(),
+    'nom-new': () => nominationForm({}),
+    'nom-edit': el => { const n = findNom(el.dataset.id); if (n) nominationForm(n); },
+    'nom-del': async el => {
+      const n = findNom(el.dataset.id);
+      if (!n || !(await confirmBox(`هل تريد حذف ترشيح ${n.studentName} (${examScope(n)})؟`, 'حذف الترشيح'))) return;
+      mutate('nominations.delete', { id: idOf(n.id) }, { label: 'حذف ترشيح ' + n.studentName });
+      putNomEverywhere(n, true);
+      commitLocal();
+      toast('حُذف الترشيح');
+      refreshView();
+    },
+    'nom-approve': el => reviewNom(el.dataset.id, true),
+    'nom-reject': el => {
+      openModal({
+        title: 'رفض الترشيح', cls: 'narrow', danger: true, submitLabel: 'رفض الترشيح',
+        body: html`<label class="field"><span>سبب الرفض (اختياري)</span><input name="note" placeholder="يظهر للمحفّظ"></label>`,
+        onSubmit: async data => { setTimeout(() => reviewNom(el.dataset.id, false, data.note), 0); },
+      });
+    },
+    // الترشيح المعتمد: يفتح نموذج الاختبار الخارجي جاهزاً بالطالب والسلسلة
+    'nom-result': el => { const n = findNom(el.dataset.id); if (n) examForm('خارجي', { studentId: n.studentId, scope: n.scope, juzFrom: n.juzFrom, juzTo: n.juzTo }); },
+    'export-noms': () => exportNoms(),
     'comp-details': () => compDetails(),
     'rep-start-edit': el => {
       const card = el.closest('.rep-card');
@@ -5298,9 +6026,12 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     'act-month': el => { if (el.value) go('activities', { month: el.value }, 'replace'); },
     'comp-period': el => { S.compPeriod = el.value; refreshView(); },
     'comp-sort': el => { S.compSort = el.value; compDetails(); },
+    'tatt-date': el => { if (el.value && el.value <= S.today) go('tattendance', { view: 'day', date: el.value }, 'replace'); },
+    'tatt-month': el => { if (el.value) go('tattendance', { view: 'month', month: el.value }, 'replace'); },
     'fin-files': el => loadFinFiles(el),
     'course-aud': el => go('courses', { aud: el.value }, 'replace'),
     'ex-filter': () => go('exams', { q: ($('#exQ') || {}).value || '', kind: ($('#exK') || {}).value || '', status: ($('#exS') || {}).value || '' }, 'replace'),
+    'nom-filter': () => go('exams', { tab: 'nominations', q: ($('#nmQ') || {}).value || '', status: ($('#nmS') || {}).value || '' }, 'replace'),
     'act-aud': el => go('activities', { month: el.dataset.month, aud: el.value }, 'replace'),
     'fin-month': el => { if (el.value) go('finance', { tab: el.dataset.tab, month: el.value }, 'replace'); },
   };
@@ -5309,6 +6040,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     login: submitLogin,
     reset: submitReset,
     report: submitReport,
+    tatt: submitTAtt,
     modal: submitModal,
   };
 
@@ -5331,6 +6063,15 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     });
   }
 
+  // خطأ مفهوم للمستخدم (متل تعديل سجل مستورد لسا ما انبعت) بيطلع رسالة بدل ما يضيع بصمت
+  function runAction(a, e) {
+    const fail = err => { if (err && err.userMsg) toast(err.message, 'error'); else if (err) console.error(err); };
+    try {
+      const r = ACTIONS[a.dataset.act](a, e);
+      if (r && typeof r.catch === 'function') r.catch(fail);
+    } catch (err) { fail(err); }
+  }
+
   function wireEvents() {
     new MutationObserver(() => { cancelAnimationFrame(labelFrame); labelFrame = requestAnimationFrame(labelTables); })
       .observe(document.body, { childList: true, subtree: true });
@@ -5342,7 +6083,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       // زر جوّا صف قابل للضغط: الزر بيشتغل بدل فتح الصف
       if (a && ACTIONS[a.dataset.act] && (!g || g.contains(a))) {
         e.preventDefault();
-        ACTIONS[a.dataset.act](a, e);
+        runAction(a, e);
         return;
       }
       if (g) {
@@ -5363,11 +6104,13 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       const form = t.form;
       if (!form) return;
       if (form.dataset.form === 'report') { form.classList.add('dirty'); onRepChange(t); updateRepLeft(); }
+      if (form.dataset.form === 'tatt') { form.classList.add('dirty'); updateTAttLeft(form); }
       if (form.dataset.form === 'modal' && (t.name === 'type' || t.name === 'beneficiaryKind') && form.beneficiaryId && form.querySelector('#catList')) syncTxForm(form);
       if (form.dataset.form === 'modal' && t.name === 'kind' && form.dataset.kafala) syncKafalaForm(form);
       if (form.dataset.form === 'modal' && form.dataset.activity && (t.name === 'audience' || t.name === 'status')) syncActivityForm(form);
       if (form.dataset.form === 'modal' && form.dataset.course && (t.name === 'audience' || t.name === 'trainerKind')) syncCourseForm(form);
       if (form.dataset.form === 'modal' && form.dataset.exam) syncExamForm(form);
+      if (form.dataset.form === 'modal' && form.dataset.nom) syncNomForm(form);
       if (form.dataset.form === 'modal' && form.dataset.finImport && (t.name === 'kind' || t.name === 'type')) syncFinImport(form);
       // نموذج الطالب: مرحلة الحلقة إذا ما انحدّدت مرحلة
       if (form.dataset.form === 'modal' && t.name === 'halaqaId' && form.stage && form.stage.tagName === 'SELECT' && !form.stage.value) {
@@ -5379,6 +6122,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     document.addEventListener('input', e => {
       const t = e.target;
       if (t.form && t.form.dataset.form === 'report') { t.form.classList.add('dirty'); updateRepLeft(); }
+      if (t.form && t.form.dataset.form === 'tatt') t.form.classList.add('dirty');
       if (t.form && t.form.dataset.exam && /^(hints|errors|ahkam)$/.test(t.name)) syncExamForm(t.form);
       if (t.hasAttribute && t.hasAttribute('data-import')) {
         clearTimeout(inputTimer);
