@@ -659,7 +659,7 @@ body:has(.savebar) .sync-pill { bottom: 84px; }
 </style>
 </head>
 <body>
-<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "2b38343";</script>
+<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "c1dbf10";</script>
 <div id="app"><div class="login"><div class="login-card" aria-busy="true" aria-label="جارٍ التحميل"><span class="sk" style="width:132px;height:132px;border-radius:28px;justify-self:center"></span><span class="sk" style="width:70%;height:22px;border-radius:6px;justify-self:center"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:40px;border-radius:8px"></span></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
@@ -1287,7 +1287,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     window.addEventListener('offline', () => setOnline(false));
     let hiddenAt = 0;
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) { hiddenAt = Date.now(); return; }
+      if (document.hidden) { hiddenAt = Date.now(); if (S.user) stampSeen(); return; }
       if (!S.user) return;
       // رجع بعد غياب طويل: بنطلب الدخول من جديد، إلا إذا في تقرير أو حضور عم يتعبّى ولسا ما انحفظ (ما بنضيّع شغله)
       const away = hiddenAt ? Date.now() - hiddenAt : 0;
@@ -1300,8 +1300,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     // رابط جوجل: كل 10 دقائق بنفحص إذا انرفعت نسخة جديدة
     if (!API_URL) setInterval(() => { if (S.user && online) serverCall('ping').then(checkVersion, () => {}); }, 10 * 60 * 1000);
     // كل 20 ثانية: إذا في تعديلات بنحاول نبعتها، وإذا ما في اتصال بنفحص إذا رجع
+    window.addEventListener('pagehide', () => { if (S.user) stampSeen(); });
     setInterval(() => {
       if (!S.user) return;
+      stampSeen();
       if (!S.token && pendingCreds) relogin();
       else if (outbox.length) flush();
       else if (!online) ping();
@@ -1412,9 +1414,28 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
 
   // التطبيق بيطلب تسجيل الدخول عند كل فتح، وبعد ما يغيب عن الشاشة أكتر من هالمدة
   // (الجوال بيخلّي التطبيق بالذاكرة وبيرجّعه بدون ما يتفتح من جديد). المعاينة (?as=) بتدخل مباشرة.
+  // تحديث الصفحة و«تحديث الآن» مش فتح جديد: بيضل داخل (طالما كان شغّال قبلها بأقل من هالمدة).
   const LOCK_AFTER_MS = 60 * 60 * 1000;
   const AUTO_LOCK = !window.__devAs;
   const lastUsername = () => store.get(LOCAL + 'lastUser') || '';
+
+  // آخر مرة كان فيها التطبيق شغّال (بنجدّدها كل ما اشتغل أو اختفى). و«alive» بتضل بنفس التبويب بعد التحديث بس مش بعد إغلاقه
+  function stampSeen() {
+    store.set(LOCAL + 'seen', String(Date.now()));
+    try { sessionStorage.setItem(LOCAL + 'alive', '1'); } catch (e) { /* خاص */ }
+  }
+  function clearSeen() {
+    store.del(LOCAL + 'seen');
+    try { sessionStorage.removeItem(LOCAL + 'alive'); } catch (e) { /* خاص */ }
+  }
+  // الصفحة انفتحت بسبب تحديث (أو «تحديث الآن») وليس فتح جديد، والتطبيق كان شغّال قبلها بأقل من ساعة
+  function isReload() {
+    let type = '', alive = false;
+    try { type = (performance.getEntriesByType('navigation')[0] || {}).type || ''; } catch (e) { /* قديم */ }
+    try { alive = sessionStorage.getItem(LOCAL + 'alive') === '1'; } catch (e) { /* خاص */ }
+    const seen = Number(store.get(LOCAL + 'seen')) || 0;
+    return (type === 'reload' || alive) && Date.now() - seen < LOCK_AFTER_MS;
+  }
 
   async function boot() {
     wireEvents();
@@ -1424,7 +1445,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     try { last = JSON.parse(store.get(LOCAL + 'last') || 'null'); } catch (e) { /* قديمة */ }
     // جلسة من فتح سابق: بنقفلها. بيانات الجهاز والتعديلات اللي ما انبعتت بتضل، وبترجع بعد ما يدخل
     // (بكلمة المرور، وبدون إنترنت كمان إذا سجّل دخول على هالجهاز قبل)
-    if (AUTO_LOCK && (S.token || last)) {
+    if (AUTO_LOCK && (S.token || last) && !isReload()) {
       const old = S.token;
       store.del(TOKEN_KEY);
       store.del(LOCAL + 'last');
@@ -1590,6 +1611,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     saveReads();
     store.del(TOKEN_KEY);
     store.del(LOCAL + 'last');
+    clearSeen();
     S.token = null;
     pendingCreds = null;
     outbox = []; failed = []; reads.clear();
@@ -1634,6 +1656,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   const navPages = () => Object.keys(PAGES).filter(k => !PAGES[k].hidden && PAGES[k].roles.includes(S.user.role));
 
   function startApp() {
+    stampSeen();
     renderShell();
     if (window.__applyUpdate) showUpdateBar();
     if (S.user.mustChange) setTimeout(() => passwordForm(true), 300);
