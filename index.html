@@ -442,8 +442,7 @@ a.srow:hover { background: var(--surface-2); }
 /* ───────── الاختبارات ───────── */
 .exam-mark { padding: 12px 14px; border-radius: 10px; background: var(--green-wash); color: var(--green-strong); font-size: 15px; text-align: center; }
 .exam-mark strong { font-size: 22px; margin-inline: 4px; }
-.pending-exams, .security-box { border-inline-start: 4px solid var(--gold); }
-.security-box .row { flex-wrap: wrap; gap: 8px; }
+.pending-exams { border-inline-start: 4px solid var(--gold); }
 .pending-exams .row { flex-wrap: wrap; gap: 8px; }
 .pr-sub { font-size: 15px; margin: 18px 0 8px; color: #000; }
 
@@ -662,7 +661,7 @@ body:has(.savebar) .sync-pill { bottom: 84px; }
 </style>
 </head>
 <body>
-<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "2f94b92";</script>
+<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "936c779";</script>
 <div id="app"><div class="login"><div class="login-card" aria-busy="true" aria-label="جارٍ التحميل"><span class="sk" style="width:132px;height:132px;border-radius:28px;justify-self:center"></span><span class="sk" style="width:70%;height:22px;border-radius:6px;justify-self:center"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:40px;border-radius:8px"></span></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
@@ -692,10 +691,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   const installCtl = (cls, label) => !canInstall() ? ''
     : API_URL ? html`<button type="button" class="${cls}" data-act="app-install">${icon('download')}${label}</button>`
     : html`<a class="${cls}" href="${APP_URL}" target="_blank" rel="noopener">${icon('download')}${label}</a>`;
-  const ROLE = { ADMIN: 'مدير', TEACHER: 'محفظ', ACCOUNTANT: 'محاسب', EXAMINER: 'مختبر' };
+  const ROLE = { ADMIN: 'مدير', TEACHER: 'محفظ', ASSISTANT: 'مساعد محفظ', ACCOUNTANT: 'محاسب', EXAMINER: 'مختبر' };
   const AMIRS = ['أمير إبتدائي', 'أمير إعدادي', 'أمير ثانوي', 'أمير التثبيت']; // أمير المرحلة بيشوف طلاب مرحلته للعرض
-  const ALL = [ROLE.ADMIN, ROLE.TEACHER, ROLE.ACCOUNTANT, ROLE.EXAMINER, ...AMIRS];
-  const TEACHING = [ROLE.ADMIN, ROLE.TEACHER];
+  const ALL = [ROLE.ADMIN, ROLE.TEACHER, ROLE.ASSISTANT, ROLE.ACCOUNTANT, ROLE.EXAMINER, ...AMIRS];
+  const TEACHING = [ROLE.ADMIN, ROLE.TEACHER, ROLE.ASSISTANT]; // ومساعد المحفّظ بحلقات محفّظه
   const VIEW = [...TEACHING, ...AMIRS];
   const FINANCE = [ROLE.ADMIN, ROLE.ACCOUNTANT];
   const ADMIN = [ROLE.ADMIN];
@@ -793,7 +792,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   }
   const initial = name => String(name || '؟').trim().replace(/^(الشيخ|الأستاذة|الأستاذ|أ\.)\s*/, '').charAt(0) || '؟';
   const is = (...roles) => roles.includes(S.user.role);
-  const teaches = h => !!h && same(h.teacherId, S.user.id); // هو محفّظ هذه الحلقة (محفّظ أو أمير)
+  // المساعد بيشتغل بحلقات محفّظه (assistantOf)، فبنعتبره محفّظها بالصلاحيات والعرض
+  const isTeacher = () => S.user.role === ROLE.TEACHER || S.user.role === ROLE.ASSISTANT;
+  const actingId = () => (S.user.role === ROLE.ASSISTANT ? String(S.user.assistantOf || '') : S.user.id);
+  const teaches = h => !!h && same(h.teacherId, actingId()); // هو محفّظ هذه الحلقة (محفّظ أو مساعده أو أمير)
   const upsert = (arr, x) => { const i = arr.findIndex(y => same(y.id, x.id)); if (i >= 0) Object.assign(arr[i], x); else arr.push(x); };
   const halaqaName = id => (S.halaqat.find(h => same(h.id, id)) || {}).name || '';
 
@@ -1267,7 +1269,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     store.del(TOKEN_KEY);
     S.token = null;
     closeModal();
-    showLogin('انتهت الجلسة، سجّل الدخول من جديد.');
+    showLogin();
   }
 
   function setOnline(v) {
@@ -1412,7 +1414,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
 
   // التطبيق بيطلب تسجيل الدخول عند كل فتح، وبعد ما يغيب عن الشاشة أكتر من هالمدة
   // (الجوال بيخلّي التطبيق بالذاكرة وبيرجّعه بدون ما يتفتح من جديد). المعاينة (?as=) بتدخل مباشرة.
-  const LOCK_AFTER_MS = 5 * 60 * 1000;
+  const LOCK_AFTER_MS = 60 * 60 * 1000;
   const AUTO_LOCK = !window.__devAs;
   const lastUsername = () => store.get(LOCAL + 'lastUser') || '';
 
@@ -1603,7 +1605,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     if (outbox.length && online && S.token) {
       try { await Promise.race([flush(), new Promise(r => setTimeout(r, 4000))]); } catch (e) { /* بتنبعت بعد الدخول */ }
     }
-    await signOut('أُغلق التطبيق للحماية لأنك ابتعدت عنه. سجّل الدخول من جديد.', uname);
+    await signOut('', uname);
   }
 
   /* ═════════ الصفحات والتنقل ═════════ */
@@ -1629,8 +1631,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   const myStage = () => AMIR_STAGE[S.user.role] || '';
   // «المرحلة الإعدادية»، و«مرحلة التثبيت»
   const stageName = st => !st ? '' : st === 'تثبيت' ? 'مرحلة التثبيت' : 'المرحلة ال' + st + 'ة';
-  const pageTitle = k => k === 'students' && is(ROLE.TEACHER) ? 'طلابي' : k === 'students' && isAmir() ? 'طلاب ' + stageName(myStage())
-    : k === 'reports' && is(ROLE.TEACHER) ? 'التقرير الشهري' : k === 'tattendance' && is(ROLE.TEACHER) ? 'حضوري' : PAGES[k].title;
+  const pageTitle = k => k === 'students' && isTeacher() ? 'طلابي' : k === 'students' && isAmir() ? 'طلاب ' + stageName(myStage())
+    : k === 'reports' && isTeacher() ? 'التقرير الشهري' : k === 'tattendance' && isTeacher() ? 'حضوري' : PAGES[k].title;
   const navPages = () => Object.keys(PAGES).filter(k => !PAGES[k].hidden && PAGES[k].roles.includes(S.user.role));
 
   function startApp() {
@@ -1810,37 +1812,11 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     main.innerHTML = html`
       <div class="page-head"><div><h1>أهلاً ${S.user.name}</h1><p class="sub">${dWeek.format(toDate(S.today))}</p></div></div>
       ${appHint()}
-      ${d.security ? homeSecurity(d.security) : ''}
       ${d.teaching ? homeTeaching(d.teaching, d.activities, d.courses, comp) : ''}
       ${d.finance ? homeFinance(d.finance, !d.teaching) : ''}
       ${d.teaching ? '' : homeActivities(d.activities)}
       ${d.exams ? homeExams(d.exams) : ''}`;
     prefetchOffline();
-  }
-
-  // تنبيهات الأمان للمدير: إعادة كلمة مرور، ومحاولة على حساب حسّاس، وحسابات كلمتها الأولى
-  function homeSecurity(sec) {
-    if (!sec || (!sec.alerts.length && !sec.firstPass)) return '';
-    return html`<section class="section panel security-box">
-      <div class="section-head"><h2>تنبيهات الأمان</h2>
-        ${sec.alerts.length > 1 ? html`<button class="btn sm ghost" data-act="security-ack-all">تم الاطلاع على الكل</button>` : ''}</div>
-      <div class="list">
-        ${sec.alerts.map(a => html`<div class="row">
-          <span class="row-main"><span class="row-title">${a.kind}${a.userName ? ': ' + a.userName : ''}</span>
-            <span class="row-meta"> ${[a.details, /^\d{4}-\d{2}-\d{2}/.test(a.at) ? fShort(a.at.slice(0, 10)) + (a.at.length > 10 ? ' ' + iso(a.at.slice(11, 16)) : '') : ''].filter(Boolean).join('، ')}</span></span>
-          <button class="btn sm secondary" data-act="security-ack" data-id="${a.id}">تم الاطلاع</button></div>`)}
-        ${sec.firstPass ? html`<a href="#" class="row" data-go="users" data-params="${params({ tab: 'teachers', first: '1' })}">
-          <span class="row-main"><span class="row-title">${fmtN(sec.firstPass)} ${sec.firstPass === 1 ? 'حساب ما زال' : 'حسابات ما زالت'} على كلمة المرور الأولى</span>
-            <span class="row-meta"> عرضها ومتابعة أصحابها</span></span>${chip(fmtN(sec.firstPass), 'warn')}</a>` : ''}
-      </div></section>`;
-  }
-
-  // «تم الاطلاع»: بيختفي التنبيه فوراً وبينبعت للسيرفر (حتى بدون إنترنت)
-  function ackSecurity(id) {
-    mutate('security.ack', id ? { id: idOf(id) } : { all: true }, { label: 'اطّلاع على تنبيه أمني' });
-    patchReads('dashboard', d => { if (d.security) d.security.alerts = id ? d.security.alerts.filter(a => !same(a.id, id)) : []; });
-    commitLocal();
-    refreshView();
   }
 
   // خروج ومسح كل ما حُفظ على الجهاز لهذا الحساب (للأجهزة المشتركة أو لما الجهاز بيضيع)
@@ -1909,7 +1885,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       ${homeActivities(acts)}
       ${homeCourses(courses)}
       <div class="stats section">
-        ${stat(is(ROLE.TEACHER) ? 'طلابي' : isAmir() ? 'طلاب ' + stageName(myStage()) : 'الطلاب الفعّالون', fmtN(t.students), (t.halaqatCount === 1 ? 'في حلقة واحدة' : t.halaqatCount === 2 ? 'في حلقتين' : `في ${fmtN(t.halaqatCount)} حلقات`))}
+        ${stat(isTeacher() ? 'طلابي' : isAmir() ? 'طلاب ' + stageName(myStage()) : 'الطلاب الفعّالون', fmtN(t.students), (t.halaqatCount === 1 ? 'في حلقة واحدة' : t.halaqatCount === 2 ? 'في حلقتين' : `في ${fmtN(t.halaqatCount)} حلقات`))}
         ${stat('مجموع الأجزاء المحفوظة', fmtN(t.juzTotal), 'حسب آخر تقرير لكل طالب')}
         ${stat('الخاتمون', fmtN(t.khatim), 'حفظوا 30 جزءاً')}
         ${stat('نسبة الحضور', last && last.attendance != null ? P(last.attendance) : '—', last ? `تقرير ${fMonth(last.month)}` : 'لا توجد تقارير بعد')}
@@ -2374,17 +2350,18 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     refreshView();
   }
 
-  // تصدير الترشيحات: ورقة لكل حلقة
+  // تصدير الترشيحات: ورقة وحدة، واسم المسجد بالأعلى ومعه العدد. بدون تاريخ الترشيح ولا الحالة.
+  // اسم المسجد من إعدادات النظام («اسم المسجد» بورقة الإعدادات، وقيمته الافتراضية مركز السلام)
   function exportNoms() {
     const list = S.nomsShown || [];
     if (!list.length) return nothing('ترشيحات');
-    exportBook(`ترشيحات الاختبارات الخارجية ${S.today}.xlsx`, groupSheets(list, n => n.halaqaName || 'بدون حلقة', (k, items) => ({
-      name: k, title: `ترشيحات الاختبارات الخارجية: ${k}`,
-      subtitle: [items[0].teacherName ? 'المحفّظ: ' + items[0].teacherName : '', `عدد الطلاب المرشّحين: ${items.length}`].filter(Boolean).join('     '),
-      columns: ['تاريخ الترشيح', { label: 'الطالب', name: true }, 'السلسلة', 'المحفّظ', 'الحالة', 'ملاحظات'],
-      rows: items.map(n => [n.date, n.studentName, examScope(n).replace(/[⁦⁩]/g, ''), n.teacherName, n.status,
-        [n.notes, n.reviewNote && 'ملاحظة الاعتماد: ' + n.reviewNote].filter(Boolean).join('، ')]),
-    })));
+    const plain = n => examScope(n).replace(/[⁦⁩]/g, '');
+    const byName = list.slice().sort((a, b) => String(a.studentName).localeCompare(String(b.studentName), 'ar'));
+    exportBook(`ترشيحات الاختبارات الخارجية ${S.today}.xlsx`, [{
+      name: 'الترشيحات', title: S.settings.mosqueName || S.settings.orgName, subtitle: `ترشيحات الاختبارات الخارجية     العدد: ${list.length}`,
+      columns: [{ label: 'الطالب', name: true }, 'السلسلة', 'المحفّظ', 'ملاحظات'],
+      rows: byName.map(n => [n.studentName, plain(n), n.teacherName, n.notes]),
+    }]);
   }
 
   function criteriaForm() {
@@ -4031,6 +4008,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         <div>
           <section class="panel section"><h2>البيانات الشخصية</h2>${dl([
             ['رقم الهوية', u.nationalId, true], ['تاريخ الميلاد', fDate(u.birthDate)], ['رقم الجوال', u.phone, true],
+            ...(u.role === ROLE.ASSISTANT ? [['مساعد للمحفّظ', ((S.usersCache || []).find(x => same(x.id, u.assistantOf)) || {}).name]] : []),
             ['الحالة الاجتماعية', u.maritalStatus], ['العمل', u.job], ['وضع البيت', u.housing],
             ['طبيعة العمل في المركز', u.workType], ['الدورة المتقنة', u.course], ['الكفالة', u.kafalaNote],
           ])}</section>
@@ -4715,8 +4693,14 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
   /* ═════════ المستخدمون والإعدادات ═════════ */
 
   // المحفّظون، ومعهم الأمير إذا كان محفّظاً لحلقة
-  const teachersOf = users => users.filter(u => u.role === ROLE.TEACHER || S.halaqat.some(h => same(h.teacherId, u.id)));
-  const halaqaOf = id => S.halaqat.filter(h => same(h.teacherId, id)).map(h => h.name).join('، ');
+  const teachersOf = users => users.filter(u => u.role === ROLE.TEACHER || u.role === ROLE.ASSISTANT || S.halaqat.some(h => same(h.teacherId, u.id)));
+  // حلقات المحفّظ، وللمساعد حلقات محفّظه
+  const halaqaOf = id => {
+    const u = (S.usersCache || []).find(x => same(x.id, id));
+    const tid = u && u.role === ROLE.ASSISTANT ? u.assistantOf : id;
+    return S.halaqat.filter(h => same(h.teacherId, tid)).map(h => h.name).join('، ');
+  };
+  const roleNote = u => (u.role === ROLE.ASSISTANT ? 'مساعد المحفّظ ' + (((S.usersCache || []).find(x => same(x.id, u.assistantOf)) || {}).name || '') : u.role);
   // خيارات الكفالة: الكفلاء المسجّلون بالمالية، وما كُتب سابقاً لمحفّظين آخرين
   const kafalaChoices = () => [...new Set(((readOf('sponsors.list', {}) || S.sponsorsCache || []).map(s => s.name))
     .concat((S.usersCache || []).map(u => u.kafalaNote)).map(v => String(v || '').trim()).filter(Boolean))];
@@ -4728,10 +4712,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     { name: 'الشؤون الإدارية والمالية', titles: ['أمين السر', 'المسؤول المالي', 'مسؤول الأنشطة', 'لجنة الاختبارات', 'إداري'] },
     { name: 'أمراء المراحل', titles: ['أمير المرحلة'], match: t => /^أمير/.test(t) },
     { name: 'المشرفون', titles: ['مشرف'], match: t => /^مشرف/.test(t) },
-    { name: 'المحفّظون', titles: ['محفّظ'], match: t => /^محف[ّ]?ظ/.test(t) },
+    { name: 'المحفّظون', titles: ['محفّظ', 'مساعد محفّظ'], match: t => /^(مساعد )?محف[ّ]?ظ/.test(t) },
   ];
   const ORG_TITLES = ORG_TIERS.flatMap(t => t.titles);
-  const roleTitle = u => (u.role === ROLE.ADMIN ? 'مدير المركز' : AMIRS.includes(u.role) ? 'أمير ' + stageName(AMIR_STAGE[u.role])
+  const roleTitle = u => (u.role === ROLE.ASSISTANT ? 'مساعد محفّظ' : u.role === ROLE.ADMIN ? 'مدير المركز' : AMIRS.includes(u.role) ? 'أمير ' + stageName(AMIR_STAGE[u.role])
     : u.role === ROLE.ACCOUNTANT ? 'المسؤول المالي' : u.role === ROLE.EXAMINER ? 'لجنة الاختبارات' : 'محفّظ');
   const orgTitle = u => String(u.adminTitle || '').trim() || roleTitle(u);
   // المنصب اللي مش بالقائمة بينحط مع الشؤون الإدارية
@@ -4778,17 +4762,9 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     S.usersCache = users;
     const admin = is(ROLE.ADMIN);
     const tab = admin ? p.tab || 'teachers' : 'teachers';
-    const allTeachers = teachersOf(users);
-    const allOthers = users.filter(u => !allTeachers.includes(u)); // المدير والمحاسب والأمير اللي مش محفّظ
-    // حسابات ما غيّرت كلمة المرور الأولى (رقم الهوية): من يعرف الرقم بيقدر يدخل بها، فالمدير بيتابع أصحابها
-    const stuck = u => u.active && u.mustChange;
-    const stuckCount = admin ? users.filter(stuck).length : 0;
-    const first = admin && p.first === '1';
-    const teachers = first ? allTeachers.filter(stuck) : allTeachers;
-    const others = first ? allOthers.filter(stuck) : allOthers;
-    const tabs = [['teachers', `المحفّظون (${allTeachers.length})`], ['accounts', `الحسابات الأخرى (${allOthers.length})`], ['org', 'الهيكلية الإدارية']];
-    const pwChip = u => (stuck(u) ? html` ${chip('كلمة المرور الأولى', 'warn')}` : '');
-    const remind = u => (stuck(u) && u.phone ? html`<a class="icon-btn" href="${waLink(u.phone, `السلام عليكم ${u.name}، حسابك في ${S.settings.orgName} ما زال على كلمة المرور الأولى (رقم الهوية). يرجى الدخول إلى النظام وتغيير كلمة المرور حفاظاً على حسابك. جزاكم الله خيراً.`)}" target="_blank" rel="noopener" aria-label="تذكير بتغيير كلمة المرور عبر واتساب" data-tip="تذكير بتغيير كلمة المرور">${icon('chat')}</a>` : '');
+    const teachers = teachersOf(users);
+    const others = users.filter(u => !teachers.includes(u)); // المدير والمحاسب والأمير اللي مش محفّظ
+    const tabs = [['teachers', `المحفّظون (${teachers.length})`], ['accounts', `الحسابات الأخرى (${others.length})`], ['org', 'الهيكلية الإدارية']];
     const delBtn = u => same(u.id, S.user.id) ? '' : html`<button class="icon-btn danger" data-act="user-del" data-id="${u.id}" data-name="${u.name}" aria-label="حذف">${icon('trash')}</button>`;
     main.innerHTML = html`
       <div class="page-head">
@@ -4797,23 +4773,21 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
           ${tab === 'teachers' && teachers.length ? html`<button class="btn secondary" data-act="export-teachers">${icon('download')}تصدير إلى إكسل</button>` : ''}
           ${!admin ? '' : tab === 'org' ? html`<button class="btn secondary" data-act="export-org">${icon('download')}تصدير إلى إكسل</button>` : tab === 'teachers'
             ? html`<button class="btn secondary" data-act="teachers-import">استيراد المحفّظين من إكسل</button>
+              <button class="btn secondary" data-act="assistant-new">${icon('plus')}إضافة مساعد محفّظ</button>
               <button class="btn" data-act="teacher-new">${icon('plus')}إضافة محفّظ</button>`
             : html`<button class="btn secondary" data-act="export-accounts">${icon('download')}تصدير إلى إكسل</button>
               <button class="btn" data-act="user-new">${icon('plus')}إضافة مستخدم</button>`}</div>
       </div>
       ${admin ? html`<nav class="tabs">${tabs.map(t => html`<a href="#" class="${t[0] === tab ? 'active' : ''}" data-go="users" data-params="${params({ tab: t[0] })}">${t[1]}</a>`)}</nav>` : ''}
-      ${stuckCount && tab !== 'org' ? html`<div class="notice"><strong>${fmtN(stuckCount)} ${stuckCount === 1 ? 'حساب لم يغيّر' : 'حسابات لم تغيّر'} كلمة المرور الأولى</strong> (رقم الهوية).
-        من يعرف رقم الهوية يستطيع الدخول بها، فتابع أصحابها من زر واتساب بجانب كل حساب.
-        <a href="#" data-go="users" data-params="${params(first ? { tab } : { tab, first: '1' })}">${first ? 'عرض كل الحسابات' : 'عرضهم فقط'}</a></div>` : ''}
       ${tab === 'teachers' ? (teachers.length ? html`<div class="table-wrap"><table>
         <thead><tr><th class="idx">#</th><th>اسم المحفّظ</th><th>رقم الجوال</th><th>الحلقة</th><th class="num">أجزاء الحفظ</th><th>طبيعة العمل</th><th>الكفالة</th>${admin ? html`<th>الحساب</th><th></th>` : ''}</tr></thead>
         <tbody>${paged('teachers', teachers).rows.map((u, i) => html`<tr class="click" data-go="teacher" data-params="${params({ id: u.id })}"><td class="idx">${rowNo('teachers', i)}</td>
-          <td><strong>${u.name}</strong>${u.role !== ROLE.TEACHER ? html`<small class="cell-sub">${u.role}</small>` : ''}</td>
+          <td><strong>${u.name}</strong>${u.role !== ROLE.TEACHER ? html`<small class="cell-sub">${roleNote(u)}</small>` : ''}</td>
           <td>${u.phone ? html`<span class="ltr">${u.phone}</span>` : '—'}</td>
           <td>${halaqaOf(u.id) || html`<span class="muted">بدون حلقة</span>`}</td>
           <td class="num">${u.juzCount || '—'}</td><td>${u.workType || '—'}</td><td>${u.kafalaNote || '—'}</td>
-          ${admin ? html`<td>${u.active ? chip('فعّال', 'good') : chip('معطّل', 'warn')}${pwChip(u)}</td>
-          <td class="actions">${remind(u)}<button class="icon-btn" data-act="user-edit" data-id="${u.id}" aria-label="تعديل">${icon('edit')}</button>${delBtn(u)}</td>` : ''}</tr>`)}</tbody>
+          ${admin ? html`<td>${u.active ? chip('فعّال', 'good') : chip('معطّل', 'warn')}</td>
+          <td class="actions"><button class="icon-btn" data-act="user-edit" data-id="${u.id}" aria-label="تعديل">${icon('edit')}</button>${delBtn(u)}</td>` : ''}</tr>`)}</tbody>
       </table></div>${paged('teachers', teachers).bar}` : emptyBox(admin ? 'لا يوجد محفّظون بعد. أضفهم واحداً تلو الآخر، أو استورد كشفهم من إكسل.' : 'لا يوجد محفّظون لحلقات مرحلتك.'))
       : tab === 'org' ? orgChart(users)
       : html`<p class="sub" style="margin-bottom:12px">يطّلع المدير على جميع البيانات، والمحفّظ على حلقاته فقط، وأمير المرحلة على طلاب مرحلته وحلقاتهم ومحفّظيها (ويعبّئ تقرير حلقته إذا كان محفّظاً لها)، والمحاسب على المالية.</p>
@@ -4821,23 +4795,25 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         <thead><tr><th class="idx">#</th><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>رقم الجوال</th><th>الحالة</th><th></th></tr></thead>
         <tbody>${paged('accounts', others).rows.map((u, i) => html`<tr class="click" data-go="teacher" data-params="${params({ id: u.id })}"><td class="idx">${rowNo('accounts', i)}</td>
           <td>${u.name}</td><td><span class="ltr">${u.username}</span></td><td>${chip(u.role, u.role === ROLE.ADMIN ? 'gold' : u.role === ROLE.TEACHER || AMIRS.includes(u.role) ? 'green' : '')}</td>
-          <td>${u.phone ? html`<span class="ltr">${u.phone}</span>` : '—'}</td><td>${u.active ? chip('فعّال', 'good') : chip('معطّل', 'warn')}${pwChip(u)}</td>
-          <td class="actions">${remind(u)}<button class="icon-btn" data-act="user-edit" data-id="${u.id}" aria-label="تعديل">${icon('edit')}</button>${delBtn(u)}</td></tr>`)}</tbody>
+          <td>${u.phone ? html`<span class="ltr">${u.phone}</span>` : '—'}</td><td>${u.active ? chip('فعّال', 'good') : chip('معطّل', 'warn')}</td>
+          <td class="actions"><button class="icon-btn" data-act="user-edit" data-id="${u.id}" aria-label="تعديل">${icon('edit')}</button>${delBtn(u)}</td></tr>`)}</tbody>
       </table></div>${paged('accounts', others).bar}`}`;
   }
 
   function userForm(u = {}) {
     const pick = (list, v) => options([...new Set([...list, v].filter(Boolean))], v);
     const isNew = !u.id;
-    openModal({
-      title: isNew ? (u.role === ROLE.TEACHER ? 'إضافة محفّظ' : 'إضافة مستخدم') : `تعديل بيانات ${u.name}`,
+    const form = openModal({
+      title: isNew ? (u.role === ROLE.TEACHER ? 'إضافة محفّظ' : u.role === ROLE.ASSISTANT ? 'إضافة مساعد محفّظ' : 'إضافة مستخدم') : `تعديل بيانات ${u.name}`,
       cls: 'wide',
       body: html`
         <h3 class="form-sec">الحساب</h3>
         <div class="grid2">
           <label class="field"><span>الاسم رباعياً</span><input name="name" required value="${u.name || ''}"></label>
-          <label class="field"><span>الدور</span><select name="role">${options([ROLE.TEACHER, ...AMIRS, ROLE.EXAMINER, ROLE.ACCOUNTANT, ROLE.ADMIN], u.role || ROLE.TEACHER)}</select></label>
+          <label class="field"><span>الدور</span><select name="role">${options([ROLE.TEACHER, ROLE.ASSISTANT, ...AMIRS, ROLE.EXAMINER, ROLE.ACCOUNTANT, ROLE.ADMIN], u.role || ROLE.TEACHER)}</select></label>
         </div>
+        <label class="field" data-assist><span>المحفّظ الذي يساعده</span><select name="assistantOf" required><option value="">اختر المحفّظ</option>${S.teachers.filter(t => !same(t.id, u.id)).map(t => option(t.id, t.name, u.assistantOf))}</select>
+          <small class="hint">يعمل المساعد بحلقات هذا المحفّظ كلها بنفس صلاحياته (التقارير والطلاب والاختبارات والترشيح)، دون المالية.</small></label>
         <label class="field"><span>المنصب في الهيكلية الإدارية</span><input name="adminTitle" list="adminTitles" value="${u.adminTitle || ''}" placeholder="${roleTitle(u.role ? u : { role: ROLE.TEACHER })} (حسب الدور)">
           <datalist id="adminTitles">${[...new Set(ORG_TITLES.concat((S.usersCache || []).map(x => x.adminTitle).filter(Boolean)))].map(t => html`<option value="${t}">`)}</datalist></label>
         <div class="grid2">
@@ -4884,6 +4860,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         const nid = toLatin(data.nationalId).replace(/\D/g, '');
         const dup = nid && (S.usersCache || []).find(x => (x.username === nid || x.nationalId === nid) && !same(x.id, u.id));
         if (dup) throw new Error(`رقم الهوية ${nid} مستخدم في حساب «${dup.name}»`);
+        if (data.role === ROLE.ASSISTANT && !data.assistantOf) throw new Error('اختر المحفّظ الذي يساعده');
+        if (data.role !== ROLE.ASSISTANT) data.assistantOf = '';
         const id = u.id || tempId('u');
         mutate('users.save', Object.assign({}, data, u.id ? { id } : {}), { tempId: u.id ? '' : id, label: (u.id ? 'تعديل بيانات ' : 'إضافة حساب ') + data.name });
         localUser(id, data, u);
@@ -4891,6 +4869,14 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         refreshView();
       },
     });
+    form.dataset.user = '1';
+    syncUserForm(form);
+  }
+
+  // خانة المحفّظ بتظهر بس لما الدور مساعد محفّظ
+  function syncUserForm(form) {
+    const assist = form.role.value === ROLE.ASSISTANT;
+    $('[data-assist]', form).hidden = !assist;
   }
 
   function parseTeachers(text) {
@@ -5095,7 +5081,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       id, name: String(data.name || '').trim(), role: data.role, nationalId: nid || u.nationalId || '', username: nid || u.username || '',
       active: data.active !== false, phone: toLatin(data.phone).replace(/[^\d+]/g, ''),
     });
-    ['maritalStatus', 'juzCount', 'kafalaNote', 'workType', 'course', 'job', 'housing', 'bank', 'wallet', 'payPhone', 'birthDate', 'adminTitle']
+    ['maritalStatus', 'juzCount', 'kafalaNote', 'workType', 'course', 'job', 'housing', 'bank', 'wallet', 'payPhone', 'birthDate', 'adminTitle', 'assistantOf']
       .forEach(k => { if (k in data) rec[k] = String(data[k] == null ? '' : data[k]).trim(); });
     delete rec.password; delete rec.resetToId;
     patchReads('users.list', list => {
@@ -5380,10 +5366,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     if (!list.length) { toast('لا يوجد محفّظون للتصدير', 'error'); return; }
     const pay = is(ROLE.ADMIN);
     const cols = [{ label: 'اسم المحفظ', name: true }, 'عدد أجزاء الحفظ', 'الحالة الاجتماعية', 'طبيعة العمل في المركز', 'الكفالة',
-      'تاريخ الميلاد', 'رقم الهوية', 'رقم الجوال', 'العمل', 'وضع البيت'].concat(pay ? ['بنك', 'محفظة', 'جوال'] : [], ['الدورة المتقنة', 'الحلقة'], pay ? ['كلمة المرور'] : []);
+      'تاريخ الميلاد', 'رقم الهوية', 'رقم الجوال', 'العمل', 'وضع البيت'].concat(pay ? ['بنك', 'محفظة', 'جوال'] : [], ['الدورة المتقنة', 'الحلقة']);
     exportBook(`المحفظون ${S.today}.xlsx`, [{ name: 'المحفظون', title: 'كشف المحفّظين', subtitle: `عدد المحفّظين: ${list.length}`, columns: cols,
       rows: list.map(u => [u.name, xnum(u.juzCount), u.maritalStatus, u.workType, u.kafalaNote,
-        u.birthDate, u.nationalId, u.phone, u.job, u.housing].concat(pay ? [u.bank, u.wallet, u.payPhone] : [], [u.course, halaqaOf(u.id)], pay ? [u.active && u.mustChange ? 'الأولى (لم تُغيَّر)' : 'مُغيَّرة'] : [])) }]);
+        u.birthDate, u.nationalId, u.phone, u.job, u.housing].concat(pay ? [u.bank, u.wallet, u.payPhone] : [], [u.course, halaqaOf(u.id)])) }]);
   }
 
   const REPORT_COLS = ['من سورة', 'من آية', 'إلى سورة', 'إلى آية', 'عدد الآيات'];
@@ -5445,8 +5431,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const list = users.filter(u => !teachers.includes(u));
     if (!list.length) return nothing('حسابات');
     exportBook(`الحسابات ${S.today}.xlsx`, [{ name: 'الحسابات', title: 'الحسابات الأخرى', subtitle: `عدد الحسابات: ${list.length}`,
-      columns: [{ label: 'الاسم', name: true }, 'اسم المستخدم', 'الدور', 'رقم الجوال', 'الحالة', 'كلمة المرور'],
-      rows: list.map(u => [u.name, u.username, u.role, u.phone, u.active ? 'فعّال' : 'معطّل', u.active && u.mustChange ? 'الأولى (لم تُغيَّر)' : 'مُغيَّرة']) }]);
+      columns: [{ label: 'الاسم', name: true }, 'اسم المستخدم', 'الدور', 'رقم الجوال', 'الحالة'],
+      rows: list.map(u => [u.name, u.username, u.role, u.phone, u.active ? 'فعّال' : 'معطّل']) }]);
   }
 
   // ملف الطالب: بياناته، وتقاريره، واختباراته، ومكافآته
@@ -5802,8 +5788,6 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     'finance-export': () => financeExportForm(),
     'export-competition': () => exportCompetition(),
     'export-tatt': () => exportTAtt(),
-    'security-ack': el => ackSecurity(el.dataset.id),
-    'security-ack-all': () => ackSecurity(''),
     'logout-wipe': () => wipeSignOut(),
     'logout-others': async () => {
       closeModal();
@@ -5891,6 +5875,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     'halaqa-edit': el => halaqaForm(S.halaqat.find(h => same(h.id, el.dataset.id))),
     'user-new': () => userForm(),
     'teacher-new': () => userForm({ role: ROLE.TEACHER }),
+    'assistant-new': () => userForm({ role: ROLE.ASSISTANT }),
     'teachers-import': () => teachersImportForm(),
     'user-edit': el => userForm((S.usersCache || []).find(u => same(u.id, el.dataset.id))),
     'tx-new': () => txForm().catch(e => toast(e.message, 'error')),
@@ -6111,6 +6096,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       if (form.dataset.form === 'modal' && form.dataset.course && (t.name === 'audience' || t.name === 'trainerKind')) syncCourseForm(form);
       if (form.dataset.form === 'modal' && form.dataset.exam) syncExamForm(form);
       if (form.dataset.form === 'modal' && form.dataset.nom) syncNomForm(form);
+      if (form.dataset.form === 'modal' && form.dataset.user && t.name === 'role') syncUserForm(form);
       if (form.dataset.form === 'modal' && form.dataset.finImport && (t.name === 'kind' || t.name === 'type')) syncFinImport(form);
       // نموذج الطالب: مرحلة الحلقة إذا ما انحدّدت مرحلة
       if (form.dataset.form === 'modal' && t.name === 'halaqaId' && form.stage && form.stage.tagName === 'SELECT' && !form.stage.value) {
