@@ -455,9 +455,7 @@ a.srow:hover { background: var(--surface-2); }
 .tatt-name small { color: var(--muted); font-size: 12.5px; }
 .tatt-note { flex: 1 1 150px; height: 36px; font-size: 14px; }
 .tatt-seg .st-p input:checked + span, .tatt-key.m-p, .tatt-matrix td.m-p { background: var(--good-wash); color: var(--good-ink); }
-.tatt-seg .st-l input:checked + span, .tatt-key.m-l, .tatt-matrix td.m-l { background: var(--warn-wash); color: var(--warn-ink); }
 .tatt-seg .st-a input:checked + span, .tatt-key.m-a, .tatt-matrix td.m-a { background: var(--bad-wash); color: var(--bad-ink); }
-.tatt-seg .st-e input:checked + span, .tatt-key.m-e, .tatt-matrix td.m-e { background: var(--neutral-wash); color: var(--neutral-ink); }
 .tatt-seg input:checked + span { font-weight: 700; }
 .tatt-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 13px; color: var(--ink-2); }
 .tatt-key { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 12.5px; font-weight: 700; margin-inline-start: 8px; }
@@ -661,7 +659,7 @@ body:has(.savebar) .sync-pill { bottom: 84px; }
 </style>
 </head>
 <body>
-<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "936c779";</script>
+<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "2b38343";</script>
 <div id="app"><div class="login"><div class="login-card" aria-busy="true" aria-label="جارٍ التحميل"><span class="sk" style="width:132px;height:132px;border-radius:28px;justify-self:center"></span><span class="sk" style="width:70%;height:22px;border-radius:6px;justify-self:center"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:40px;border-radius:8px"></span></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
@@ -2607,20 +2605,20 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
 
   const TATT = [
     { s: 'حاضر', k: 'p', short: 'ح' },
-    { s: 'متأخر', k: 'l', short: 'ت' },
     { s: 'غائب', k: 'a', short: 'غ' },
-    { s: 'غائب بعذر', k: 'e', short: 'ع' },
   ];
   const TATT_BY = Object.fromEntries(TATT.map(x => [x.s, x]));
+  // نسخة قديمة محفوظة على الجهاز ممكن يكون فيها «متأخر» أو «غائب بعذر»: بتنعرض حاضر وغائب
+  const TATT_LEGACY = { 'متأخر': 'حاضر', 'غائب بعذر': 'غائب' };
   const daysIn = ym => new Date(+ym.slice(0, 4), +ym.slice(5, 7), 0).getDate();
   const shiftDay = (ymd, n) => { const d = toDate(ymd); d.setDate(d.getDate() + n); return dayOf(d); };
 
-  // عدد أيام كل حالة لمحفّظ بالشهر، ونسبة الحضور (الحاضر والمتأخر من كل الأيام المسجّلة)
+  // عدد أيام الحضور والغياب لمحفّظ بالشهر، ونسبة الحضور من كل الأيام المسجّلة
   function tattTally(d, tid) {
-    const c = { 'حاضر': 0, 'متأخر': 0, 'غائب': 0, 'غائب بعذر': 0 };
+    const c = { 'حاضر': 0, 'غائب': 0 };
     Object.keys(d.days).forEach(day => { const r = d.days[day][tid]; if (r && r.s in c) c[r.s]++; });
-    const n = c['حاضر'] + c['متأخر'] + c['غائب'] + c['غائب بعذر'];
-    return Object.assign(c, { n, rate: n ? Math.round(((c['حاضر'] + c['متأخر']) / n) * 100) : null });
+    const n = c['حاضر'] + c['غائب'];
+    return Object.assign(c, { n, rate: n ? Math.round((c['حاضر'] / n) * 100) : null });
   }
 
   async function pageTAtt(main, p, seq) {
@@ -2630,6 +2628,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
     const month = view === 'day' ? date.slice(0, 7) : (p.month || S.today.slice(0, 7));
     const d = await load('tattendance.month', { month });
     if (stale(seq)) return;
+    Object.values(d.days).forEach(day => Object.values(day).forEach(r => { r.s = TATT_LEGACY[r.s] || r.s; }));
     S.tattData = d;
     main.innerHTML = html`
       <div class="page-head">
@@ -2722,15 +2721,14 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       </div>
       ${own ? html`<div class="stats">
         ${stat('أيام الحضور', fmtN(own.c['حاضر']), fMonth(d.month))}
-        ${stat('أيام التأخر', fmtN(own.c['متأخر']), '')}
-        ${stat('أيام الغياب', fmtN(own.c['غائب'] + own.c['غائب بعذر']), own.c['غائب بعذر'] ? `منها ${fmtN(own.c['غائب بعذر'])} بعذر` : '')}
+        ${stat('أيام الغياب', fmtN(own.c['غائب']), '')}
         ${stat('نسبة الحضور', own.c.rate == null ? '—' : P(own.c.rate), own.c.n ? `من ${fmtN(own.c.n)} يوماً مسجّلاً` : 'لا أيام مسجّلة')}
       </div>` : html`<div class="table-wrap"><table>
-        <thead><tr><th class="idx">#</th><th>المحفّظ</th><th class="num">حاضر</th><th class="num">متأخر</th><th class="num">غائب</th><th class="num">غائب بعذر</th><th class="num">الأيام المسجّلة</th><th class="num">نسبة الحضور</th></tr></thead>
+        <thead><tr><th class="idx">#</th><th>المحفّظ</th><th class="num">حاضر</th><th class="num">غائب</th><th class="num">الأيام المسجّلة</th><th class="num">نسبة الحضور</th></tr></thead>
         <tbody>${tally.map(({ t, c }, i) => html`<tr><td class="idx">${i + 1}</td>
           <td><strong>${t.name}</strong>${t.halaqat ? html`<small class="cell-sub">${t.halaqat}</small>` : ''}</td>
-          <td class="num">${fmtN(c['حاضر'])}</td><td class="num">${fmtN(c['متأخر'])}</td>
-          <td class="num">${c['غائب'] ? chip(fmtN(c['غائب']), 'bad') : '0'}</td><td class="num">${fmtN(c['غائب بعذر'])}</td>
+          <td class="num">${fmtN(c['حاضر'])}</td>
+          <td class="num">${c['غائب'] ? chip(fmtN(c['غائب']), 'bad') : '0'}</td>
           <td class="num">${fmtN(c.n)}</td><td class="num">${c.rate == null ? '—' : P(c.rate)}</td></tr>`)}</tbody>
       </table></div>`}
       <section class="section">
@@ -2749,30 +2747,38 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
         <div class="section-head"><h2>الأيام التي فيها غياب أو ملاحظة</h2></div>
         ${noted.length ? html`<div class="list">${noted.map(({ day, r }) => html`<div class="row">
           <span class="row-main"><span class="row-title">${fDate(day)}</span>${r.n ? html`<span class="row-meta"> ${r.n}</span>` : ''}</span>
-          ${chip(r.s, r.s === 'حاضر' ? 'good' : r.s === 'متأخر' ? 'warn' : r.s === 'غائب' ? 'bad' : '')}</div>`)}</div>`
+          ${chip(r.s, r.s === 'حاضر' ? 'good' : 'bad')}</div>`)}</div>`
           : html`<p class="muted">لا غياب ولا ملاحظات هذا الشهر.</p>`}</section>` : ''}`;
   }
 
-  // تصدير الشهر: ملخص لكل محفّظ، وجدول الأيام (ح ت غ ع)، والسجل بالتفصيل
+  // تصدير الشهر: كشف الحضور (كل أيام الشهر: 1 حضور، 0 غياب، ومعه المجاميع)، وملخص لكل محفّظ، والسجل بالتفصيل
   function exportTAtt() {
     const d = S.tattData;
     if (!d || !d.teachers.length) return nothing('محفّظين');
     const n = daysIn(d.month), ds = Array.from({ length: n }, (_, i) => d.month + '-' + pad2(i + 1));
-    const tally = d.teachers.map(t => ({ t, c: tattTally(d, t.id) }));
-    const sum = k => tally.reduce((a, x) => a + x.c[k], 0);
-    const sub = `${fMonth(d.month)}     عدد المحفّظين: ${d.teachers.length}`;
+    const here = r => r.s === 'حاضر';
+    const tally = d.teachers.map(t => { const c = tattTally(d, t.id); return { t, p: c['حاضر'], a: c['غائب'], n: c.n, rate: c.rate }; });
+    const sum = k => tally.reduce((a, x) => a + x[k], 0);
+    const sub = `${fMonth(d.month)}     عدد المحفّظين: ${d.teachers.length}     1 حضور، 0 غياب`;
     const title = 'حضور وغياب المحفّظين';
+    const recOf = (day, t) => (d.days[day] || {})[t.id];
+    // عمود لكل يوم بالشهر: رقم اليوم واسمه
+    const dayCols = ds.map(day => ({ label: `${+day.slice(8)}\n${WEEKDAYS[toDate(day).getDay()]}`, w: 8.5 }));
+    // عدد الحاضرين بكل يوم (فاضي إذا ما انسجّل شي باليوم)
+    const perDay = ds.map(day => (Object.keys(d.days[day] || {}).length ? d.teachers.filter(t => { const r = recOf(day, t); return r && here(r); }).length : ''));
     const log = [];
-    ds.forEach(day => d.teachers.forEach(t => { const r = (d.days[day] || {})[t.id]; if (r) log.push([day, WEEKDAYS[toDate(day).getDay()], t.name, r.s, r.n]); }));
+    ds.forEach(day => d.teachers.forEach(t => { const r = recOf(day, t); if (r) log.push([day, WEEKDAYS[toDate(day).getDay()], t.name, here(r) ? 1 : 0, r.n]); }));
     exportBook(`${title} ${d.month}.xlsx`, [
+      { name: 'كشف الحضور', title, subtitle: sub,
+        columns: [{ label: 'المحفّظ', name: true }].concat(dayCols, ['حضور', 'غياب', 'نسبة الحضور %']),
+        rows: tally.map(x => [x.t.name].concat(ds.map(day => { const r = recOf(day, x.t); return r ? (here(r) ? 1 : 0) : ''; }),
+          [x.p, x.a, x.rate == null ? '' : x.rate])),
+        foot: ['الحاضرون كل يوم'].concat(perDay, [sum('p'), sum('a'), '']) },
       { name: 'ملخص الشهر', title, subtitle: sub,
-        columns: [{ label: 'المحفّظ', name: true }, 'الحلقة', 'حاضر', 'متأخر', 'غائب', 'غائب بعذر', 'الأيام المسجّلة', 'نسبة الحضور %'],
-        rows: tally.map(({ t, c }) => [t.name, t.halaqat, c['حاضر'], c['متأخر'], c['غائب'], c['غائب بعذر'], c.n, c.rate == null ? '' : c.rate]),
-        foot: ['المجموع', '', sum('حاضر'), sum('متأخر'), sum('غائب'), sum('غائب بعذر'), sum('n')] },
-      { name: 'جدول الأيام', title, subtitle: sub + '     ح حاضر، ت متأخر، غ غائب، ع غائب بعذر',
-        columns: [{ label: 'المحفّظ', name: true }].concat(ds.map((x, i) => String(i + 1))),
-        rows: d.teachers.map(t => [t.name].concat(ds.map(day => { const r = (d.days[day] || {})[t.id]; return r ? TATT_BY[r.s].short : ''; }))) },
-      { name: 'السجل التفصيلي', title, subtitle: sub, columns: ['التاريخ', 'اليوم', { label: 'المحفّظ', name: true }, 'الحالة', 'ملاحظات'], rows: log },
+        columns: [{ label: 'المحفّظ', name: true }, 'الحلقة', 'حضور', 'غياب', 'الأيام المسجّلة', 'نسبة الحضور %'],
+        rows: tally.map(x => [x.t.name, x.t.halaqat, x.p, x.a, x.n, x.rate == null ? '' : x.rate]),
+        foot: ['المجموع', '', sum('p'), sum('a'), sum('n')] },
+      { name: 'السجل التفصيلي', title, subtitle: sub, columns: ['التاريخ', 'اليوم', { label: 'المحفّظ', name: true }, 'الحضور (1) / الغياب (0)', 'ملاحظات'], rows: log },
     ]);
   }
 
@@ -5182,8 +5188,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return `<c r="${ref}" s="4"><v>${serial(s)}</v></c>`;
       return str(ref, col.name ? 3 : 2, s);
     };
+    const tall = cols.some(c => String(c.label).includes('\n')); // عنوان من سطرين: الصف أعلى
     const width = (c, i) => {
-      const longest = Math.max(String(c.label).length, ...data.slice(0, 500).map(r => String(r[i] == null ? '' : r[i]).length));
+      if (c.w) return c.w;
+      const longest = Math.max(...String(c.label).split('\n').map(l => l.length), ...data.slice(0, 500).map(r => String(r[i] == null ? '' : r[i]).length));
       return i === 0 ? 5 : Math.min(55, Math.round(longest * 1.2 + 4));
     };
     const lastCol = colName(cols.length - 1);
@@ -5201,7 +5209,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3Gw
       + `<cols>${cols.map((c, i) => `<col min="${i + 1}" max="${i + 1}" width="${width(c, i)}" customWidth="1"/>`).join('')}</cols>`
       + '<sheetData>'
       + (sh.title ? band(1, 5, sh.title) + band(2, 6, sh.subtitle || '') : '')
-      + `<row r="${H}" ht="28" customHeight="1">${cols.map((c, i) => str(colName(i) + H, head, c.label)).join('')}</row>`
+      + `<row r="${H}" ht="${tall ? 42 : 28}" customHeight="1">${cols.map((c, i) => str(colName(i) + H, head, c.label)).join('')}</row>`
       + data.map((r, ri) => `<row r="${ri + H + 1}">${cols.map((c, i) => cell(r[i], colName(i) + (ri + H + 1), c)).join('')}</row>`).join('')
       + (foot ? `<row r="${footRow}" ht="26" customHeight="1">${cols.map((c, i) => footCell(foot[i], colName(i) + footRow)).join('')}</row>` : '')
       + '</sheetData>'
