@@ -581,6 +581,8 @@ body:has(.savebar) .sync-pill { bottom: 84px; }
 .sync-list small { color: var(--muted); font-size: 12.5px; }
 .sync-list.bad li { background: var(--bad-wash); }
 .sync-list.bad small { color: var(--bad-ink); }
+.sync-list small.sum { color: var(--ink-2); }
+.sync-btns { display: flex; gap: 14px; margin-top: 4px; }
 .cell-sub { display: block; color: var(--muted); font-size: 12.5px; font-weight: 400; margin-top: 2px; white-space: normal; min-width: 140px; }
 
 .tip {
@@ -659,7 +661,7 @@ body:has(.savebar) .sync-pill { bottom: 84px; }
 </style>
 </head>
 <body>
-<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "90642ed";</script>
+<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "9c93492";</script>
 <div id="app"><div class="login"><div class="login-card" aria-busy="true" aria-label="جارٍ التحميل"><span class="sk" style="width:132px;height:132px;border-radius:28px;justify-self:center"></span><span class="sk" style="width:70%;height:22px;border-radius:6px;justify-self:center"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:40px;border-radius:8px"></span></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
@@ -1045,6 +1047,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
 
   /* ═════════ التعديلات بدون إنترنت والمزامنة ═════════ */
 
+  let freshFail = 0; // تعديلات رفضها السيرفر بهالدورة (لنفتح قائمتها مباشرة)
   let outbox = [], failed = [], flushing = false, online = navigator.onLine !== false, flushTimer, lastSync = 0;
   const aliases = {}; // رقم مؤقت ← الرقم الحقيقي بالشيت
   const newId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -1115,7 +1118,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
           if (i < 0) return;
           const o = outbox.splice(i, 1)[0];
           sent = true;
-          if (!r.ok) failed.push({ label: o.label || o.action, error: r.error, at: Date.now() });
+          if (!r.ok) {
+            failed.push({ label: o.label || o.action, error: r.error, at: Date.now(), op: { action: o.action, payload: o.payload, tempId: o.tempId, day: o.day, label: o.label, imp: o.imp } });
+            freshFail++;
+          }
           // كشف مستورد انبعت: بتنشال نسخته المؤقتة، والصفوف اللي رفضها السيرفر بتنعرض بقائمة «تعذّر حفظ»
           if (o.imp) importDone(o);
           if (r.ok && r.info && r.info.errors) r.info.errors.forEach(x => failed.push({ label: `${o.label || o.action} (الصف ${x.line})`, error: x.error, at: Date.now() }));
@@ -1211,6 +1217,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     const from = JSON.stringify(tmp), to = JSON.stringify(real);
     const swap = v => JSON.parse(JSON.stringify(v).split(from).join(to));
     outbox = swap(outbox);
+    failed = swap(failed);
     ['students', 'halaqat', 'teachers', 'params'].forEach(k => { S[k] = swap(S[k]); });
     [...reads.keys()].forEach(k => {
       const x = reads.get(k);
@@ -1227,7 +1234,12 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     reads.forEach(x => { x.t = 0; }); // كل النسخ بتتحدّث أول ما تنفتح
     refreshFromServer();
     setTimeout(() => packAll(false), 4000);
-    if (failed.length) toast(`تعذّر حفظ ${pendingText(failed.length)}. اضغط على التنبيه أسفل الشاشة لمعرفة السبب.`, 'error');
+    if (freshFail) {
+      const n = freshFail;
+      freshFail = 0;
+      if (safeToRender()) syncSheet();
+      else toast(`تعذّر حفظ ${pendingText(n)}. اضغط على التنبيه أسفل الشاشة لمعرفة السبب.`, 'error');
+    }
   }
 
   let refreshingAll = false;
@@ -1396,16 +1408,37 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
   }
 
   // التعديلات اللي رفضها النظام (متل رقم هوية مكرّر) مع السبب
+  // ملخص بيانات التعديل (اسم، تاريخ…) حتى يعرف المستخدم شو هو
+  const opSummary = op => {
+    const p = (op && op.payload) || {};
+    return Object.keys(p).map(k => p[k]).filter(v => (typeof v === 'string' && v && !isTemp(v)) || typeof v === 'number').slice(0, 4).map(v => String(v).slice(0, 24)).join('، ');
+  };
   function syncSheet() {
+    if (!failed.length) { closeModal(); return; }
     openModal({
       title: 'تعذّر حفظ بعض التعديلات',
       cls: 'narrow',
       body: html`
-        <ul class="sync-list bad">${failed.map(f => html`<li><span>${f.label}</span><small>${f.error}</small></li>`)}</ul>
-        <p class="hint">صحّح البيانات وأعد حفظها، ثم امسح هذه القائمة.</p>`,
-      submitLabel: 'مسح القائمة',
-      onSubmit: async () => { failed = []; saveOutbox(); },
+        <p class="hint">لم يقبل النظام هذه التعديلات، وهي محفوظة هنا ولم تُحذف. صحّح السبب ثم أعد المحاولة، أو احذف التعديل إن لم تعد تريده.</p>
+        <ul class="sync-list bad">${failed.map((f, i) => html`<li><span>${f.label}</span><small>${f.error}</small>
+          ${f.op && opSummary(f.op) ? html`<small class="sum">${opSummary(f.op)}</small>` : ''}
+          <span class="sync-btns">${f.op ? html`<button type="button" class="link-btn" data-act="sync-retry" data-i="${i}">إعادة المحاولة</button>` : ''}
+            <button type="button" class="link-btn danger-text" data-act="sync-drop" data-i="${i}">حذف</button></span></li>`)}</ul>`,
+      submitLabel: failed.some(f => f.op) ? 'إعادة محاولة الكل' : 'إغلاق',
+      cancelLabel: 'إغلاق',
+      onSubmit: async () => { if (failed.some(f => f.op)) retryFailed(); },
     });
+  }
+  // التعديل بيرجع لطابور الإرسال برقم عملية جديد (الرفض القديم مخزّن برقم العملية القديم)
+  function retryFailed(i) {
+    const list = i == null ? failed.slice() : [failed[i]].filter(Boolean);
+    list.forEach(f => {
+      if (!f.op) return;
+      outbox.push({ op: newId('op'), action: f.op.action, payload: f.op.payload, tempId: f.op.tempId || '', day: f.op.day || deviceDay(), label: f.op.label || f.label, at: Date.now(), imp: f.op.imp });
+      failed = failed.filter(x => x !== f);
+    });
+    saveOutbox();
+    flushSoon(30);
   }
 
   // بيجهّز كل صفحات النظام على الجهاز إذا صار وقتها
@@ -1450,6 +1483,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
   async function boot() {
     wireEvents();
     wireNetwork();
+    // نطلب من المتصفح يعتبر بيانات التطبيق دائمة، حتى ما يمسحها عند ضيق المساحة وفيها تعديلات لسا ما انبعتت
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* مش متاح */ }
     S.token = store.get(TOKEN_KEY);
     let last = null;
     try { last = JSON.parse(store.get(LOCAL + 'last') || 'null'); } catch (e) { /* قديمة */ }
@@ -5847,6 +5882,13 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     'forgot': () => showReset(),
     'back-login': () => showLogin(),
     'sync': () => syncSheet(),
+    'sync-retry': el => { retryFailed(Number(el.dataset.i)); toast('أُعيد إرسال التعديل'); syncSheet(); },
+    'sync-drop': async el => {
+      const f = failed[Number(el.dataset.i)];
+      if (!f) return;
+      if (await confirmBox(`سيُحذف هذا التعديل نهائياً: ${f.label}. هل تريد المتابعة؟`, 'حذف التعديل')) { failed = failed.filter(x => x !== f); saveOutbox(); }
+      syncSheet();
+    },
     'pack-now': () => { packAll(true, true); renderPackStatus(); },
     'app-update': () => { if (window.__applyUpdate) window.__applyUpdate(); else location.reload(); },
     'app-install': async () => {
