@@ -459,6 +459,14 @@ a.srow:hover { background: var(--surface-2); }
 .tatt-seg input:checked + span { font-weight: 700; }
 .tatt-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 13px; color: var(--ink-2); }
 .tatt-key { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 12.5px; font-weight: 700; margin-inline-start: 8px; }
+.ceval-list { display: grid; }
+.ceval-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 0; border-top: 1px solid var(--line); }
+.ceval-row:first-child { border-top: 0; }
+.ceval-name { flex: 1 1 180px; min-width: 0; }
+.ceval-name small { display: block; color: var(--muted); font-size: 12.5px; }
+.ceval-mark { width: 110px; height: 36px; text-align: center; }
+.ceval-note { flex: 1 1 160px; height: 36px; font-size: 14px; }
+.ceval-ro { min-width: 90px; }
 .tatt-matrix { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 .tatt-matrix table { width: auto; min-width: 100%; border-collapse: collapse; font-size: 13px; }
 .tatt-matrix th, .tatt-matrix td { padding: 7px 3px; min-width: 27px; text-align: center; border: 1px solid var(--line); background: var(--surface); }
@@ -661,7 +669,7 @@ body:has(.savebar) .sync-pill { bottom: 84px; }
 </style>
 </head>
 <body>
-<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "9c93492";</script>
+<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "026904c";</script>
 <div id="app"><div class="login"><div class="login-card" aria-busy="true" aria-label="جارٍ التحميل"><span class="sk" style="width:132px;height:132px;border-radius:28px;justify-self:center"></span><span class="sk" style="width:70%;height:22px;border-radius:6px;justify-self:center"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:40px;border-radius:8px"></span></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
@@ -1249,7 +1257,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     try {
       const d = await call('bootstrap', { home: true });
       if (outbox.length || !S.user) return;
-      const shell = u => JSON.stringify([u.role, u.name]);
+      const shell = u => JSON.stringify([u.role, u.name, !!u.canStudents]);
       const changed = shell(d.user) !== shell(S.user);
       applyBootstrap(d);
       if (changed) { renderShell(); go(S.route, S.params, 'none'); } else quietRender();
@@ -1706,6 +1714,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     users: { title: 'المحفّظون', icon: 'key', roles: STAFF, render: pageUsers },
   };
   const isAmir = () => AMIRS.includes(S.user.role);
+  // المدير دائماً، والموظف (محفّظ، مساعد، أمير) إذا فتح له المدير الصلاحية: يضيف الطلاب ويعدّلهم بحلقاته أو مرحلته (والحذف للمدير)
+  const canStudents = () => is(ROLE.ADMIN) || !!S.user.canStudents;
   const AMIR_STAGE = { 'أمير إبتدائي': 'إبتدائي', 'أمير إعدادي': 'إعدادي', 'أمير ثانوي': 'ثانوي', 'أمير التثبيت': 'تثبيت' };
   const myStage = () => AMIR_STAGE[S.user.role] || '';
   // «المرحلة الإعدادية»، و«مرحلة التثبيت»
@@ -2883,23 +2893,114 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     return chip('جارية', 'gold');
   }
 
+  // تقييم طلاب الدورة: تقدير وملاحظة لكل طالب من طلاب حلقتها أو مرحلتها، بيشتغل بدون إنترنت
+  const courseEvals = () => readOf('courses.evals', {}) || [];
+  const findCourse = id => (readOf('courses.list', {}) || []).find(c => same(c.id, id));
+  // طلاب الدورة اللي بيشوفهم المستخدم: الفعّالون، ومن عنده تقييم
+  function courseStudents(c) {
+    const has = new Set(courseEvals().filter(e => same(e.courseId, c.id)).map(e => String(e.studentId)));
+    return S.students.filter(st => (st.status === 'فعّال' || has.has(String(st.id)))
+      && (c.audience === 'حلقة' ? same(st.halaqaId, c.audienceRef) : stageOfStudent(st.id) === c.audienceRef))
+      .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+  }
+  const canEvalStudent = (c, st) => is(ROLE.ADMIN) || S.halaqat.some(h => same(h.id, st.halaqaId) && teaches(h))
+    || (isAmir() && c.audience === 'مرحلة' && c.audienceRef === myStage() && stageOfStudent(st.id) === myStage());
+
   function courseRow(c, home) {
     const when = c.startDate && c.endDate ? `من ${fDate(c.startDate)} إلى ${fDate(c.endDate)}`
       : c.startDate ? (S.today < c.startDate ? 'تبدأ ' : 'بدأت ') + fDate(c.startDate) : '';
+    const st = home ? [] : courseStudents(c);
+    const marks = st.length ? courseEvals().filter(e => same(e.courseId, c.id) && e.mark !== '' && e.mark != null).map(e => Number(e.mark)) : [];
+    const avg = marks.length ? Math.round((marks.reduce((a, v) => a + v, 0) / marks.length) * 10) / 10 : null;
+    const meta = [when, c.trainer && 'الشيخ: ' + c.trainer, marks.length && `قُيِّم ${fmtN(marks.length)} من ${nStudents(st.length)}، المتوسط ${fmtN(avg)} من 100`].filter(Boolean);
+    const writable = st.some(x => canEvalStudent(c, x));
     return html`<div class="act">
       <div class="act-main">
         <div class="act-title"><strong>${c.title}</strong>${audChip(c)}${courseStatus(c)}</div>
-        ${when || c.trainer ? html`<div class="act-meta">${[when, c.trainer && 'الشيخ: ' + c.trainer].filter(Boolean).join('، ')}</div>` : ''}
+        ${meta.length ? html`<div class="act-meta">${meta.join('، ')}</div>` : ''}
         ${c.details ? html`<p class="act-desc">${c.details}</p>` : ''}
       </div>
-      ${canEditCourse(c) && !home ? html`<div class="act-side"><div class="act-btns">
-        <button class="icon-btn" data-act="course-edit" data-id="${c.id}" aria-label="تعديل الدورة">${icon('edit')}</button>
-        <button class="icon-btn danger" data-act="course-del" data-id="${c.id}" aria-label="حذف الدورة">${icon('trash')}</button></div></div>` : ''}
+      ${!home && (st.length || canEditCourse(c)) ? html`<div class="act-side"><div class="act-btns">
+        ${st.length ? html`<button class="btn sm secondary" data-act="course-eval" data-id="${c.id}">${icon('medal')}${writable ? 'تقييم الطلاب' : 'تقييم الطلاب (عرض)'}</button>` : ''}
+        ${canEditCourse(c) ? html`<button class="icon-btn" data-act="course-edit" data-id="${c.id}" aria-label="تعديل الدورة">${icon('edit')}</button>
+        <button class="icon-btn danger" data-act="course-del" data-id="${c.id}" aria-label="حذف الدورة">${icon('trash')}</button>` : ''}</div></div>` : ''}
     </div>`;
   }
 
+  async function openCourseEval(id) {
+    const c = findCourse(id);
+    if (!c) return;
+    try { await load('courses.evals'); } catch (e) { toast(e.message, 'error'); return; }
+    courseEvalForm(c);
+  }
+
+  function courseEvalForm(c) {
+    const mine = new Map(courseEvals().filter(e => same(e.courseId, c.id)).map(e => [String(e.studentId), e]));
+    const rows = courseStudents(c).map(st => ({ st, e: mine.get(String(st.id)) || {}, w: canEvalStudent(c, st) }));
+    const writable = rows.some(r => r.w);
+    const form = openModal({
+      title: `تقييم طلاب «${c.title}»`,
+      cls: 'wide',
+      submitLabel: 'حفظ التقييم',
+      body: html`
+        <p class="hint">${c.audienceName}، ${nStudents(rows.length)}. ${writable ? 'اكتب علامة كل طالب من 100 وملاحظة إن شئت، ويُحفظ لكل طالب. ترك العلامة والملاحظة فارغتين يمسح تقييمه.' : 'للعرض فقط، فالتقييم لمحفّظ حلقة الطالب أو أمير المرحلة أو المدير.'}</p>
+        <div class="ceval-list">${rows.map(({ st, e, w }) => html`
+          <div class="ceval-row" data-sid="${st.id}" data-orig="${e.mark == null ? '' : e.mark}" data-orig-note="${e.notes || ''}">
+            <div class="ceval-name"><strong>${st.name}</strong>${c.audience === 'مرحلة' && st.halaqaId ? html`<small>${halaqaName(st.halaqaId)}</small>` : ''}</div>
+            ${w ? html`<input class="ceval-mark" type="number" min="0" max="100" step="0.5" inputmode="decimal" value="${e.mark == null ? '' : e.mark}" placeholder="من 100" aria-label="علامة ${st.name} من 100">
+              <input class="ceval-note" value="${e.notes || ''}" placeholder="ملاحظة (اختياري)" maxlength="200" aria-label="ملاحظة ${st.name}">`
+              : html`<span class="ceval-ro">${markChip(e.mark)}</span>${e.notes ? html`<span class="muted">${e.notes}</span>` : ''}`}
+          </div>`)}</div>`,
+      onSubmit: writable ? async () => {
+        const entries = [];
+        let bad = '';
+        $$('.ceval-row', form).forEach(row => {
+          const inp = $('.ceval-mark', row);
+          if (!inp) return;
+          const mark = toLatin(inp.value), notes = $('.ceval-note', row).value.trim();
+          if (mark !== '' && !(Number(mark) >= 0 && Number(mark) <= 100)) { bad = bad || `علامة «${$('strong', row).textContent}» يجب أن تكون من 0 إلى 100`; return; }
+          if (mark === row.dataset.orig && notes === row.dataset.origNote) return;
+          entries.push({ studentId: idOf(row.dataset.sid), mark: mark === '' ? '' : Number(mark), notes });
+        });
+        if (bad) throw new Error(bad);
+        if (!entries.length) { toast('لا توجد تغييرات للحفظ'); return; }
+        mutate('courses.evalSave', { courseId: idOf(c.id), entries }, { label: 'تقييم طلاب دورة ' + c.title });
+        localCourseEval(c, entries);
+        toast('حُفظ التقييم');
+        refreshView();
+      } : null,
+    });
+  }
+
+  // التقييم بيظهر فوراً بصفحة الدورات وملف الطالب
+  function localCourseEval(c, entries) {
+    const put = list => entries.forEach(en => {
+      const i = list.findIndex(x => same(x.courseId, c.id) && same(x.studentId, en.studentId));
+      if (en.mark === '' && !en.notes) { if (i >= 0) list.splice(i, 1); return; }
+      const rec = Object.assign({ id: '', courseId: c.id, studentId: en.studentId }, i >= 0 ? list[i] : {}, { courseTitle: c.title, mark: en.mark, notes: en.notes, byUser: S.user.name });
+      if (i >= 0) list[i] = rec; else list.push(rec);
+    });
+    patchReads('courses.evals', put);
+    if (!readOf('courses.evals', {})) { const l = []; put(l); putRead(keyOf('courses.evals', {}), l); }
+    commitLocal();
+  }
+
+  // علامة الدورة من 100: أخضر من 90، وأحمر تحت 50
+  const markChip = m => (m === '' || m == null ? html`<span class="muted">—</span>` : chip(`${fmtN(m)} من 100`, m >= 90 ? 'good' : m >= 75 ? '' : m >= 50 ? 'warn' : 'bad'));
+
+  // تقييم الدورات بملف الطالب
+  const courseEvalsBox = st => {
+    const evs = courseEvals().filter(e => same(e.studentId, st.id) && ((e.mark !== '' && e.mark != null) || e.notes));
+    if (!evs.length) return '';
+    return html`<section class="panel section"><h2>تقييم الدورات</h2><div class="list" style="margin-top:10px">${evs.map(e => html`
+      <div class="row"><span class="row-main"><span class="row-title">${e.courseTitle}</span>${e.notes ? html`<span class="row-meta"> ${e.notes}</span>` : ''}</span>
+        ${e.mark !== '' && e.mark != null ? markChip(e.mark) : ''}</div>`)}</div></section>`;
+  };
+
   async function pageCourses(main, p, seq) {
     const list = await load('courses.list');
+    if (stale(seq)) return;
+    await load('courses.evals').catch(() => null);
     if (stale(seq)) return;
     const aud = p.aud || '';
     const shown = list.filter(c => !aud || aud === c.audience + ':' + c.audienceRef);
@@ -3341,8 +3442,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
         <div><h1>${pageTitle('students')}</h1><p class="sub">الطلاب الفعّالون: ${fmtN(list.filter(s => s.status === 'فعّال').length)}</p></div>
         <div class="ph-actions">
           ${list.length ? html`<button class="btn secondary" data-act="export-students">${icon('download')}تصدير إلى إكسل</button>` : ''}
-          ${is(ROLE.ADMIN) ? html`<button class="btn secondary" data-act="students-import">استيراد من إكسل</button>
-          <button class="btn" data-act="student-new">${icon('plus')}إضافة طالب</button>` : ''}</div>
+          ${is(ROLE.ADMIN) ? html`<button class="btn secondary" data-act="students-import">استيراد من إكسل</button>` : ''}
+          ${canStudents() ? html`<button class="btn" data-act="student-new">${icon('plus')}إضافة طالب</button>` : ''}</div>
       </div>
       <div class="toolbar">
         <label class="field grow"><span>بحث</span><input type="search" id="stQ" placeholder="الاسم أو رقم الهوية أو ولي الأمر أو الجوال" value="${f.q}" data-input="st-filter"></label>
@@ -3373,7 +3474,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
       el.innerHTML = html`<div class="empty small">${(S.studentList || []).length ? 'لا يوجد طلاب مطابقون للبحث.' : 'لا يوجد طلاب مسجّلون بعد.'}</div>`;
       return;
     }
-    const admin = is(ROLE.ADMIN);
+    const admin = is(ROLE.ADMIN), canEdit = canStudents();
     const pg = paged('students', all);
     const sel = s => S.selected.has(String(s.id));
     el.classList.toggle('selectable', admin);
@@ -3388,7 +3489,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
           <div class="c-memo">${juzMeter(s.juzCount)}</div>
           <div class="c-att">${s.lastReport ? rateChip(s.attendance) : html`<span class="muted">—</span>`}</div>
           <div class="c-last">${s.lastAchievement || html`<span class="muted">—</span>`}</div>
-          <div class="c-status">${chip(s.status, STATUS_KIND[s.status])}${admin ? html`<button class="icon-btn" data-act="student-edit" data-id="${s.id}" aria-label="تعديل بيانات الطالب">${icon('edit')}</button><button class="icon-btn danger" data-act="student-del" data-id="${s.id}" aria-label="حذف الطالب">${icon('trash')}</button>` : ''}</div>
+          <div class="c-status">${chip(s.status, STATUS_KIND[s.status])}${canEdit ? html`<button class="icon-btn" data-act="student-edit" data-id="${s.id}" aria-label="تعديل بيانات الطالب">${icon('edit')}</button>` : ''}${admin ? html`<button class="icon-btn danger" data-act="student-del" data-id="${s.id}" aria-label="حذف الطالب">${icon('trash')}</button>` : ''}</div>
         </a>`)}
       ${pg.bar}`;
   }
@@ -3460,6 +3561,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
   async function pageStudent(main, p, seq) {
     const d = await load('students.get', { id: p.id });
     if (stale(seq)) return;
+    await load('courses.evals').catch(() => null);
+    if (stale(seq)) return;
     const s = d.student, last = d.reports[0];
     S.studentCache = d;
     const asc = d.reports.slice().reverse();
@@ -3472,9 +3575,9 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
         <div class="ph-actions">
           <button class="btn ghost" data-act="export-student">${icon('download')}تصدير</button>
           ${s.guardianPhone && last ? html`<a class="btn secondary" href="${waLink(s.guardianPhone, reportText(d))}" target="_blank" rel="noopener">${icon('chat')}إرسال التقرير لولي الأمر</a>` : ''}
-          ${is(ROLE.ADMIN) ? html`<button class="btn ghost" data-act="reward-new" data-kind="طالب" data-id="${s.id}">${icon('gift')}مكافأة</button>
-            <button class="btn ghost" data-act="student-edit" data-id="${s.id}">${icon('edit')}تعديل البيانات</button>
-            <button class="btn ghost danger-text" data-act="student-del" data-id="${s.id}">${icon('trash')}حذف</button>` : ''}
+          ${is(ROLE.ADMIN) ? html`<button class="btn ghost" data-act="reward-new" data-kind="طالب" data-id="${s.id}">${icon('gift')}مكافأة</button>` : ''}
+          ${canStudents() ? html`<button class="btn ghost" data-act="student-edit" data-id="${s.id}">${icon('edit')}تعديل البيانات</button>` : ''}
+          ${is(ROLE.ADMIN) ? html`<button class="btn ghost danger-text" data-act="student-del" data-id="${s.id}">${icon('trash')}حذف</button>` : ''}
         </div>
       </div>
       <div class="stats">
@@ -3518,6 +3621,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
           </section>
           ${d.rewards ? rewardsBox(d.rewards, 'طالب', s.id) : ''}
           ${d.exams ? examsBox(d.exams, s) : ''}
+          ${courseEvalsBox(s)}
         </div>
       </div>`;
   }
@@ -3545,6 +3649,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
   }
 
   function studentForm(s = {}) {
+    const admin = is(ROLE.ADMIN), amir = !admin && isAmir();
     openModal({
       title: s.id ? 'تعديل بيانات الطالب' : 'إضافة طالب',
       submitLabel: s.id ? 'حفظ التعديلات' : 'إضافة الطالب',
@@ -3555,10 +3660,10 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
           <label class="field"><span>تاريخ الميلاد</span><input type="date" name="birthDate" value="${s.birthDate || ''}"></label>
         </div>
         <div class="grid2">
-          <label class="field"><span>المرحلة</span><select name="stage"><option value="">—</option>${options(S.lists.stages, s.stage)}</select></label>
+          <label class="field"><span>المرحلة</span><select name="stage">${amir ? '' : html`<option value="">—</option>`}${options(amir ? [myStage()] : S.lists.stages, amir ? myStage() : s.stage)}</select></label>
         </div>
         <div class="grid2">
-          <label class="field"><span>الحلقة</span><select name="halaqaId"><option value="">بدون حلقة</option>${S.halaqat.map(h => option(h.id, h.name, s.halaqaId))}</select></label>
+          <label class="field"><span>الحلقة</span><select name="halaqaId" ${admin ? '' : raw('required')}><option value="">${admin ? 'بدون حلقة' : 'اختر الحلقة'}</option>${S.halaqat.map(h => option(h.id, h.name, s.halaqaId))}</select></label>
           <label class="field"><span>الحالة</span><select name="status">${options(S.lists.studentStatus, s.status || 'فعّال')}</select></label>
         </div>
         <div class="grid2">
@@ -4019,8 +4124,8 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
         <div class="ph-actions">
           ${pd ? html`<button class="btn" data-go="report" data-params="${params({ month: pd.month, halaqaId: h.id })}">${icon('check')}تقرير ${fMonth(pd.month)}</button>` : ''}
           ${d.students.length ? html`<button class="btn ghost" data-act="export-halaqa">${icon('download')}تصدير الطلاب</button>` : ''}
+          ${canStudents() && (is(ROLE.ADMIN) || teaches(h) || isAmir()) ? html`<button class="btn secondary" data-act="student-new" data-halaqa="${h.id}">${icon('plus')}إضافة طالب</button>` : ''}
           ${is(ROLE.ADMIN) ? html`
-            <button class="btn secondary" data-act="student-new" data-halaqa="${h.id}">${icon('plus')}إضافة طالب</button>
             <button class="btn ghost" data-act="halaqa-edit" data-id="${h.id}">${icon('edit')}تعديل</button>
             ${d.students.length ? '' : html`<button class="btn ghost danger-text" data-act="halaqa-del" data-id="${h.id}" data-name="${h.name}">${icon('trash')}حذف الحلقة</button>`}` : ''}
         </div>
@@ -4039,7 +4144,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
             <td><strong>${s.name}</strong></td><td>${s.stage || '—'}</td><td>${juzMeter(s.juzCount)}</td>
             <td class="wrap">${s.lastAchievement || '—'}</td><td class="num">${s.attendance == null ? '—' : rateChip(s.attendance)}</td>
             <td>${chip(s.status, STATUS_KIND[s.status])}</td></tr>`)}</tbody>
-        </table></div>${paged('halaqaStudents', d.students).bar}` : emptyBox('لا يوجد طلاب في هذه الحلقة بعد.', is(ROLE.ADMIN) ? html`<button class="btn" data-act="student-new" data-halaqa="${h.id}">إضافة طالب</button>` : '')}
+        </table></div>${paged('halaqaStudents', d.students).bar}` : emptyBox('لا يوجد طلاب في هذه الحلقة بعد.', canStudents() && (is(ROLE.ADMIN) || teaches(h) || isAmir()) ? html`<button class="btn" data-act="student-new" data-halaqa="${h.id}">إضافة طالب</button>` : '')}
       </section>
       ${halaqaCourses(h)}`;
   }
@@ -4097,6 +4202,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
           <section class="panel section"><h2>البيانات الشخصية</h2>${dl([
             ['رقم الهوية', u.nationalId, true], ['تاريخ الميلاد', fDate(u.birthDate)], ['رقم الجوال', u.phone, true],
             ...(u.role === ROLE.ASSISTANT ? [['مساعد للمحفّظ', ((S.usersCache || []).find(x => same(x.id, u.assistantOf)) || {}).name]] : []),
+            ...(u.canStudents ? [['صلاحية الطلاب', 'يضيف الطلاب ويعدّل بياناتهم']] : []),
             ['الحالة الاجتماعية', u.maritalStatus], ['العمل', u.job], ['وضع البيت', u.housing],
             ['طبيعة العمل في المركز', u.workType], ['الدورة المتقنة', u.course], ['الكفالة', u.kafalaNote],
           ])}</section>
@@ -4915,7 +5021,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
       ${tab === 'teachers' ? (teachers.length ? html`<div class="table-wrap"><table>
         <thead><tr><th class="idx">#</th><th>اسم المحفّظ</th><th>رقم الجوال</th><th>الحلقة</th><th class="num">أجزاء الحفظ</th><th>طبيعة العمل</th><th>الكفالة</th>${admin ? html`<th>الحساب</th><th></th>` : ''}</tr></thead>
         <tbody>${paged('teachers', teachers).rows.map((u, i) => html`<tr class="click" data-go="teacher" data-params="${params({ id: u.id })}"><td class="idx">${rowNo('teachers', i)}</td>
-          <td><strong>${u.name}</strong>${u.role !== ROLE.TEACHER ? html`<small class="cell-sub">${roleNote(u)}</small>` : ''}</td>
+          <td><strong>${u.name}</strong>${u.role !== ROLE.TEACHER || u.canStudents ? html`<small class="cell-sub">${[u.role !== ROLE.TEACHER ? roleNote(u) : '', u.canStudents ? 'يضيف الطلاب ويعدّلهم' : ''].filter(Boolean).join('، ')}</small>` : ''}</td>
           <td>${u.phone ? html`<span class="ltr">${u.phone}</span>` : '—'}</td>
           <td>${halaqaOf(u.id) || html`<span class="muted">بدون حلقة</span>`}</td>
           <td class="num">${u.juzCount || '—'}</td><td>${u.workType || '—'}</td><td>${u.kafalaNote || '—'}</td>
@@ -4961,6 +5067,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
           <label class="check" style="align-self:end;padding-bottom:10px"><input type="checkbox" name="resetToId" data-bool>إرجاع كلمة المرور لرقم الهوية</label>
         </div>`}
         <label class="check"><input type="checkbox" name="active" data-bool ${u.active !== false ? raw('checked') : ''}>الحساب فعّال (يمكنه تسجيل الدخول)</label>
+        <label class="check" data-students><input type="checkbox" name="canStudents" data-bool ${u.canStudents ? raw('checked') : ''}>يمكنه إضافة الطلاب وتعديل بياناتهم (طلاب حلقاته أو مرحلته فقط، والحذف للمدير فقط)</label>
 
         <h3 class="form-sec">البيانات الشخصية</h3>
         <div class="grid2">
@@ -5008,8 +5115,9 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
 
   // خانة المحفّظ بتظهر بس لما الدور مساعد محفّظ
   function syncUserForm(form) {
-    const assist = form.role.value === ROLE.ASSISTANT;
+    const role = form.role.value, assist = role === ROLE.ASSISTANT;
     $('[data-assist]', form).hidden = !assist;
+    $('[data-students]', form).hidden = !(role === ROLE.TEACHER || assist || AMIRS.includes(role));
   }
 
   function parseTeachers(text) {
@@ -5217,6 +5325,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     ['maritalStatus', 'juzCount', 'kafalaNote', 'workType', 'course', 'job', 'housing', 'bank', 'wallet', 'payPhone', 'birthDate', 'adminTitle', 'assistantOf']
       .forEach(k => { if (k in data) rec[k] = String(data[k] == null ? '' : data[k]).trim(); });
     delete rec.password; delete rec.resetToId;
+    if ('canStudents' in data) rec.canStudents = !!data.canStudents && (rec.role === ROLE.TEACHER || rec.role === ROLE.ASSISTANT || AMIRS.includes(rec.role));
     patchReads('users.list', list => {
       const i = list.findIndex(x => same(x.id, id));
       if (i >= 0) Object.assign(list[i], rec); else list.push(Object.assign({ mustChange: true }, rec));
@@ -5611,11 +5720,22 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     const list = S.coursesShown || [];
     if (!list.length) return nothing('دورات');
     const status = c => !c.startDate ? '' : S.today < c.startDate ? 'قادمة' : c.endDate && S.today > c.endDate ? 'منتهية' : 'جارية';
-    exportBook(`الدورات ${S.today}.xlsx`, groupSheets(list, c => c.audienceName, (k, items) => ({
+    const sheets = groupSheets(list, c => c.audienceName, (k, items) => ({
       name: k, title: `الدورات: ${k}`, subtitle: `عدد الدورات: ${items.length}`,
       columns: [{ label: 'الدورة', name: true }, 'تاريخ البداية', 'تاريخ النهاية', 'الحالة', 'الشيخ', 'التفاصيل', 'أضافها'],
       rows: items.map(c => [c.title, c.startDate, c.endDate, status(c), c.trainer, c.details, c.byUser]),
-    })));
+    }));
+    // تقييم الطلاب: صف لكل طالب بكل دورة (بس إذا في تقييمات)
+    const evs = courseEvals(), evRows = [];
+    list.forEach(c => courseStudents(c).forEach(st => {
+      const e = evs.find(x => same(x.courseId, c.id) && same(x.studentId, st.id)) || {};
+      evRows.push([c.title, st.name, halaqaName(st.halaqaId), xnum(e.mark), e.notes || '', e.byUser || '']);
+    }));
+    const marked = evRows.filter(r => r[3] !== '');
+    if (evRows.some(r => r[3] !== '' || r[4])) sheets.push({ name: 'تقييم الطلاب', title: 'تقييم طلاب الدورات',
+      subtitle: `عدد الدورات: ${list.length}     المقيَّمون: ${marked.length}${marked.length ? '     المتوسط: ' + Math.round(marked.reduce((a, r) => a + r[3], 0) / marked.length * 10) / 10 + ' من 100' : ''}`,
+      columns: [{ label: 'الدورة', name: true }, { label: 'الطالب', name: true }, 'الحلقة', 'العلامة من 100', 'ملاحظات', 'قيّمه'], rows: evRows });
+    exportBook(`الدورات ${S.today}.xlsx`, sheets);
   }
 
   // الاختبارات: ورقة لكل حلقة
@@ -6094,6 +6214,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
       $('[name=fromSurah]', card).focus();
     },
     'course-new': el => courseForm(el.dataset.halaqa ? { audience: 'حلقة', audienceRef: idOf(el.dataset.halaqa) } : {}),
+    'course-eval': el => openCourseEval(el.dataset.id),
     'course-edit': el => courseForm((readOf('courses.list', {}) || []).find(c => same(c.id, el.dataset.id))),
     'course-del': async el => {
       const c = (readOf('courses.list', {}) || []).find(x => same(x.id, el.dataset.id));
