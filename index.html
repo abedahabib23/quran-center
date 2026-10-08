@@ -459,6 +459,9 @@ a.srow:hover { background: var(--surface-2); }
 .tatt-seg input:checked + span { font-weight: 700; }
 .tatt-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 13px; color: var(--ink-2); }
 .tatt-key { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; font-size: 12.5px; font-weight: 700; margin-inline-start: 8px; }
+.act-link { color: inherit; text-decoration: none; }
+.act-link:hover strong { color: var(--green-strong); text-decoration: underline; }
+.cbands { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .ceval-list { display: grid; }
 .ceval-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 0; border-top: 1px solid var(--line); }
 .ceval-row:first-child { border-top: 0; }
@@ -669,7 +672,7 @@ body:has(.savebar) .sync-pill { bottom: 84px; }
 </style>
 </head>
 <body>
-<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "026904c";</script>
+<script>window.API_URL = "https://script.google.com/macros/s/AKfycby6dPSHNMXzqH4F6uuX-w7SBOZlE5f4YLHVC6iMPTlAAcguYHoYyT24mwoIIlWEL28E/exec"; window.APP_VERSION = "6824016";</script>
 <div id="app"><div class="login"><div class="login-card" aria-busy="true" aria-label="جارٍ التحميل"><span class="sk" style="width:132px;height:132px;border-radius:28px;justify-self:center"></span><span class="sk" style="width:70%;height:22px;border-radius:6px;justify-self:center"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:42px;border-radius:8px"></span><span class="sk" style="width:100%;height:40px;border-radius:8px"></span></div></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
@@ -1702,6 +1705,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     reports: { title: 'التقارير', icon: 'check', roles: VIEW, render: pageReports },
     report: { hidden: true, parent: 'reports', roles: VIEW, render: pageReport },
     students: { title: 'الطلاب', icon: 'users', roles: VIEW, render: pageStudents },
+    course: { hidden: true, parent: 'courses', roles: VIEW, render: pageCourse },
     activities: { title: 'الأنشطة', icon: 'flag', roles: ALL, render: pageActivities },
     courses: { title: 'الدورات', icon: 'book', roles: VIEW, render: pageCourses },
     exams: { title: 'الاختبارات', icon: 'medal', roles: EXAM_ROLES, render: pageExams },
@@ -2916,7 +2920,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     const writable = st.some(x => canEvalStudent(c, x));
     return html`<div class="act">
       <div class="act-main">
-        <div class="act-title"><strong>${c.title}</strong>${audChip(c)}${courseStatus(c)}</div>
+        <div class="act-title"><a href="#" class="act-link" data-go="course" data-params="${params({ id: c.id })}"><strong>${c.title}</strong></a>${audChip(c)}${courseStatus(c)}</div>
         ${meta.length ? html`<div class="act-meta">${meta.join('، ')}</div>` : ''}
         ${c.details ? html`<p class="act-desc">${c.details}</p>` : ''}
       </div>
@@ -2996,6 +3000,91 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
       <div class="row"><span class="row-main"><span class="row-title">${e.courseTitle}</span>${e.notes ? html`<span class="row-meta"> ${e.notes}</span>` : ''}</span>
         ${e.mark !== '' && e.mark != null ? markChip(e.mark) : ''}</div>`)}</div></section>`;
   };
+
+  // صفحة الدورة: بياناتها ونتائج طلابها (العلامات والمتوسط والأعلى)
+  async function pageCourse(main, p, seq) {
+    const list = await load('courses.list');
+    if (stale(seq)) return;
+    await load('courses.evals').catch(() => null);
+    if (stale(seq)) return;
+    const back = html`<button class="icon-btn" data-go="courses" aria-label="رجوع للدورات">${icon('back')}</button>`;
+    const c = list.find(x => same(x.id, p.id));
+    if (!c) {
+      main.innerHTML = html`<div class="page-head"><div class="ph-title">${back}<div><h1>الدورة غير موجودة</h1></div></div></div>${emptyBox('ربما حُذفت هذه الدورة.')}`;
+      return;
+    }
+    const byStudent = new Map(courseEvals().filter(e => same(e.courseId, c.id)).map(e => [String(e.studentId), e]));
+    const has = r => r.e && r.e.mark !== '' && r.e.mark != null;
+    const rows = courseStudents(c).map(st => ({ s: st, e: byStudent.get(String(st.id)) || null }))
+      .sort((a, b) => (has(b) ? Number(b.e.mark) : -1) - (has(a) ? Number(a.e.mark) : -1) || a.s.name.localeCompare(b.s.name, 'ar'));
+    const done = rows.filter(has), marks = done.map(r => Number(r.e.mark));
+    const avg = marks.length ? Math.round((marks.reduce((a, v) => a + v, 0) / marks.length) * 10) / 10 : null;
+    const bands = [['90 فأكثر', 'good', v => v >= 90], ['من 75 إلى 90', '', v => v >= 75 && v < 90], ['من 50 إلى 75', 'warn', v => v >= 50 && v < 75], ['أقل من 50', 'bad', v => v < 50]]
+      .map(([label, kind, test]) => [label, kind, marks.filter(test).length]).filter(b => b[2]);
+    const when = c.startDate && c.endDate ? `من ${fDate(c.startDate)} إلى ${fDate(c.endDate)}`
+      : c.startDate ? (S.today < c.startDate ? 'تبدأ ' : 'بدأت ') + fDate(c.startDate) : '';
+    const writable = rows.some(r => canEvalStudent(c, r.s));
+    const stage = c.audience === 'مرحلة';
+    const pg = paged('courseStudents', rows);
+    S.courseView = { c, rows, avg, done: done.length };
+    const info = [[stage ? 'المرحلة' : 'الحلقة', c.audienceName], ['تاريخ البداية', fDate(c.startDate)], ['تاريخ النهاية', fDate(c.endDate)],
+      ['الشيخ', c.trainer], ['أضافها', c.byUser]].filter(r => r[1]);
+    main.innerHTML = html`
+      <div class="page-head">
+        <div class="ph-title">${back}
+          <div><h1>${c.title} ${courseStatus(c)}</h1><p class="sub">${[c.audienceName, when, c.trainer && 'الشيخ: ' + c.trainer].filter(Boolean).join('، ')}</p></div>
+        </div>
+        <div class="ph-actions">
+          ${rows.length ? html`<button class="btn" data-act="course-eval" data-id="${c.id}">${icon('medal')}${writable ? 'تقييم الطلاب' : 'تقييم الطلاب (عرض)'}</button>
+          <button class="btn ghost" data-act="export-course">${icon('download')}تصدير إلى إكسل</button>` : ''}
+          ${canEditCourse(c) ? html`<button class="btn ghost" data-act="course-edit" data-id="${c.id}">${icon('edit')}تعديل</button>` : ''}
+        </div>
+      </div>
+      <div class="stats">
+        ${stat('طلاب الدورة', fmtN(rows.length), c.audienceName)}
+        ${stat('المقيَّمون', fmtN(done.length), rows.length ? `من ${nStudents(rows.length)}` : '')}
+        ${stat('متوسط العلامات', avg == null ? '—' : fmtN(avg), avg == null ? 'لم يُقيَّم أحد بعد' : 'من 100')}
+        ${stat('الأعلى علامة', done.length ? fmtN(done[0].e.mark) : '—', done.length ? done[0].s.name : '')}
+      </div>
+      <div class="two-col wide-first">
+        <section class="section">
+          <div class="section-head"><h2>نتائج الطلاب</h2><p>${done.length ? `${fmtN(done.length)} من ${nStudents(rows.length)}` : ''}</p></div>
+          ${rows.length ? html`<div class="table-wrap"><table>
+            <thead><tr><th class="idx">#</th><th>الطالب</th>${stage ? html`<th>الحلقة</th>` : ''}<th class="num">العلامة</th><th>ملاحظات</th></tr></thead>
+            <tbody>${pg.rows.map((r, i) => html`<tr class="click" data-go="student" data-params="${params({ id: r.s.id })}"><td class="idx">${rowNo('courseStudents', i)}</td>
+              <td><strong>${r.s.name}</strong></td>${stage ? html`<td>${halaqaName(r.s.halaqaId) || '—'}</td>` : ''}
+              <td class="num">${markChip(r.e && r.e.mark)}</td><td class="wrap">${(r.e && r.e.notes) || '—'}</td></tr>`)}</tbody>
+          </table></div>${pg.bar}` : emptyBox('لا يوجد طلاب في هذه الدورة بعد.')}
+        </section>
+        <div>
+          <section class="panel section"><h2>بيانات الدورة</h2>
+            <dl class="info">${info.map(([k, v]) => html`<dt>${k}</dt><dd>${v}</dd>`)}</dl>
+            ${c.details ? html`<p class="act-desc" style="white-space:pre-wrap;margin-top:10px">${c.details}</p>` : ''}
+          </section>
+          ${bands.length ? html`<section class="panel section"><h2>توزيع العلامات</h2>
+            <div class="cbands">${bands.map(([label, kind, n]) => chip(`${label}: ${fmtN(n)}`, kind))}</div></section>` : ''}
+        </div>
+      </div>`;
+  }
+
+  // تصدير الدورة: نتائج الطلاب، وبيانات الدورة
+  function exportCourse() {
+    const d = S.courseView;
+    if (!d || !d.rows.length) return nothing('نتائج');
+    const { c, rows, avg, done } = d;
+    const status = !c.startDate ? '' : S.today < c.startDate ? 'قادمة' : c.endDate && S.today > c.endDate ? 'منتهية' : 'جارية';
+    const stage = c.audience === 'مرحلة';
+    exportBook(`${c.title} ${S.today}.xlsx`, [
+      { name: 'النتائج', title: c.title, subtitle: `${c.audienceName}     الطلاب: ${rows.length}     المقيَّمون: ${done}${avg == null ? '' : '     المتوسط: ' + avg + ' من 100'}`,
+        columns: [{ label: 'الطالب', name: true }, 'الحلقة', 'العلامة من 100', 'ملاحظات', 'قيّمه'],
+        rows: rows.map(r => [r.s.name, halaqaName(r.s.halaqaId), xnum(r.e && r.e.mark), (r.e && r.e.notes) || '', (r.e && r.e.byUser) || '']),
+        foot: ['المتوسط', '', avg == null ? '' : avg, '', ''] },
+      { name: 'بيانات الدورة', title: c.title, subtitle: c.audienceName,
+        columns: [{ label: 'البند', name: true }, 'القيمة'],
+        rows: [['اسم الدورة', c.title], [stage ? 'المرحلة' : 'الحلقة', c.audienceName], ['تاريخ البداية', c.startDate], ['تاريخ النهاية', c.endDate], ['الحالة', status],
+          ['الشيخ', c.trainer], ['التفاصيل', c.details], ['أضافها', c.byUser]].filter(r => r[1]) },
+    ]);
+  }
 
   async function pageCourses(main, p, seq) {
     const list = await load('courses.list');
@@ -6215,6 +6304,7 @@ window.LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAIAAABC8jL
     },
     'course-new': el => courseForm(el.dataset.halaqa ? { audience: 'حلقة', audienceRef: idOf(el.dataset.halaqa) } : {}),
     'course-eval': el => openCourseEval(el.dataset.id),
+    'export-course': () => exportCourse(),
     'course-edit': el => courseForm((readOf('courses.list', {}) || []).find(c => same(c.id, el.dataset.id))),
     'course-del': async el => {
       const c = (readOf('courses.list', {}) || []).find(x => same(x.id, el.dataset.id));
